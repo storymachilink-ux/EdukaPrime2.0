@@ -32,9 +32,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       <Card className="w-full max-w-md relative bg-white border-2 border-gray-200 shadow-xl">
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-gray-500 hover:text-gray-700 z-10"
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-2 rounded-xl transition-all duration-200 z-10"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
 
         <div className="p-8">
@@ -92,7 +92,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               type="submit"
               variant="primary"
               size="md"
-              className="w-full mt-8"
+              className="w-full mt-8 bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl focus-visible:ring-green-500"
               disabled={isLoading}
             >
               {isLoading ? 'Entrando...' : 'Entrar'}
