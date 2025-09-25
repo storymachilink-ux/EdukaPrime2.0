@@ -82,11 +82,11 @@ export const Dashboard: React.FC = () => {
             Continue de onde parou ou explore novos conteúdos
           </p>
           <div className="space-y-2">
-            <button className="w-full text-left p-3 rounded-[14px] bg-[#FFE3A0] hover:bg-[#F59E0B] hover:text-white transition-all duration-200 focus:ring-2 focus:ring-[#F59E0B]/50">
-              <p className="font-medium text-[#033258] group-hover:text-white">
+            <button className="w-full text-left p-4 rounded-2xl bg-white border border-[#FFE3A0] hover:bg-[#FFF3D6] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FBBF24] group">
+              <p className="font-medium text-[#033258]">
                 Continuar Atividade de Português
               </p>
-              <p className="text-sm text-[#476178] group-hover:text-white/80">
+              <p className="text-sm text-[#476178]">
                 Progresso: 60%
               </p>
             </button>

@@ -119,10 +119,10 @@ export const Atividades: React.FC = () => {
           <button
             key={filter}
             onClick={() => setActiveFilter(filter)}
-            className={`px-6 py-3 rounded-[14px] font-medium transition-all duration-200 ${
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FBBF24] ${
               activeFilter === filter
-                ? 'bg-[#F59E0B] text-white shadow-lg'
-                : 'bg-[#FFF3D6] text-[#033258] hover:bg-[#FBE9BE] border border-[#FFE3A0]'
+                ? 'bg-[#FFE3A0] text-[#033258] shadow-lg border border-[#F59E0B]'
+                : 'bg-white text-[#033258] hover:bg-[#FFF3D6] border border-[#FFE3A0]'
             }`}
           >
             {filter}
@@ -138,14 +138,14 @@ export const Atividades: React.FC = () => {
           return (
             <div
               key={material.id}
-              className="bg-[#FBE9BE] rounded-[2rem] shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-[#FFE3A0]"
+              className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-[#FFE3A0] p-6"
               style={{ borderTop: `4px solid ${borderColor}` }}
             >
               {/* Top Badge */}
-              <div className="p-4 pb-0">
+              <div className="mb-4">
                 <div className="inline-block">
                   <span
-                    className="px-3 py-1 text-xs font-medium rounded-full text-white"
+                    className="px-3 py-1 text-xs font-medium rounded-xl text-white"
                     style={{ backgroundColor: borderColor }}
                   >
                     {material.ageRange}
@@ -154,7 +154,7 @@ export const Atividades: React.FC = () => {
               </div>
 
               {/* Image */}
-              <div className="px-4 pb-4">
+              <div className="mb-4">
                 <div className="aspect-video rounded-2xl overflow-hidden">
                   <img
                     src={material.image}
@@ -165,7 +165,7 @@ export const Atividades: React.FC = () => {
               </div>
 
               {/* Content */}
-              <div className="px-6 pb-6">
+              <div>
                 <h3 className="text-lg font-semibold text-[#033258] mb-3 leading-tight">
                   {material.title}
                 </h3>
@@ -175,16 +175,15 @@ export const Atividades: React.FC = () => {
                 </p>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="flex gap-3 mt-4">
                   <button
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-                    style={{ backgroundColor: borderColor }}
+                    className="flex-1 bg-[#F59E0B] hover:bg-[#D97706] text-white font-medium py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[#FBBF24]"
                   >
                     <Download className="w-4 h-4" />
                     Baixar Agora
                   </button>
 
-                  <button className="px-4 py-3 border border-[#FFE3A0] text-[#033258] hover:bg-[#FFE3A0] rounded-[14px] transition-colors duration-200">
+                  <button className="px-4 py-3 border border-[#FFE3A0] bg-white text-[#033258] hover:bg-[#FFF3D6] rounded-xl transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FBBF24]">
                     <Eye className="w-4 h-4" />
                   </button>
                 </div>

@@ -9,7 +9,7 @@ export const DashboardHeader: React.FC = () => {
   const { isDark, toggle } = useTheme();
 
   return (
-    <header className="bg-[#FFF3D6] border-b-2 border-[#FFE3A0] p-4 shadow-lg">
+    <header className="bg-white/80 backdrop-blur-lg border-b border-[#FFE3A0] p-4 shadow-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 md:hidden">
           <img
@@ -22,12 +22,12 @@ export const DashboardHeader: React.FC = () => {
         <div className="flex items-center gap-4 ml-auto">
           <button
             onClick={toggle}
-            className="p-2 text-[#476178] hover:text-[#033258] hover:bg-[#FBE9BE] rounded-[14px] transition-all duration-200 focus:ring-2 focus:ring-[#F59E0B]/50"
+            className="p-2 text-[#476178] hover:text-[#033258] hover:bg-[#FFF3D6] rounded-xl transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FBBF24]"
           >
             {isDark ? '☀️' : '🌙'}
           </button>
 
-          <button className="p-2 text-[#476178] hover:text-[#033258] hover:bg-[#FBE9BE] rounded-[14px] transition-all duration-200 focus:ring-2 focus:ring-[#F59E0B]/50">
+          <button className="p-2 text-[#476178] hover:text-[#033258] hover:bg-[#FFF3D6] rounded-xl transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FBBF24]">
             <Bell className="w-5 h-5" />
           </button>
           
