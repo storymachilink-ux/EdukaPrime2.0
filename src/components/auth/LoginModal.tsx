@@ -88,15 +88,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
             
-            <Button
+            <button
               type="submit"
-              variant="primary"
-              size="md"
-              className="w-full mt-8 bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl focus-visible:ring-green-500"
               disabled={isLoading}
+              className="w-full mt-8 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Entrando...' : 'Entrar'}
-            </Button>
+            </button>
           </form>
 
           <div className="mt-8 text-center">
