@@ -105,10 +105,10 @@ export const Atividades: React.FC = () => {
     <div className="space-y-8">
       {/* Header Section */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        <h1 className="text-4xl font-bold text-[#033258] mb-4">
           Acervo de atividades
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300">
+        <p className="text-lg text-[#476178]">
           Explore nossa biblioteca de atividades educacionais
         </p>
       </div>
@@ -119,10 +119,10 @@ export const Atividades: React.FC = () => {
           <button
             key={filter}
             onClick={() => setActiveFilter(filter)}
-            className={`px-6 py-3 rounded-full font-medium transition-all duration-200 ${
+            className={`px-6 py-3 rounded-[14px] font-medium transition-all duration-200 ${
               activeFilter === filter
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                ? 'bg-[#F59E0B] text-white shadow-lg'
+                : 'bg-[#FFF3D6] text-[#033258] hover:bg-[#FBE9BE] border border-[#FFE3A0]'
             }`}
           >
             {filter}
@@ -138,7 +138,7 @@ export const Atividades: React.FC = () => {
           return (
             <div
               key={material.id}
-              className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group"
+              className="bg-[#FBE9BE] rounded-[2rem] shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-[#FFE3A0]"
               style={{ borderTop: `4px solid ${borderColor}` }}
             >
               {/* Top Badge */}
@@ -166,11 +166,11 @@ export const Atividades: React.FC = () => {
 
               {/* Content */}
               <div className="px-6 pb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 leading-tight">
+                <h3 className="text-lg font-semibold text-[#033258] mb-3 leading-tight">
                   {material.title}
                 </h3>
 
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                <p className="text-sm text-[#476178] mb-6 leading-relaxed">
                   {material.description}
                 </p>
 
@@ -184,7 +184,7 @@ export const Atividades: React.FC = () => {
                     Baixar Agora
                   </button>
 
-                  <button className="px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
+                  <button className="px-4 py-3 border border-[#FFE3A0] text-[#033258] hover:bg-[#FFE3A0] rounded-[14px] transition-colors duration-200">
                     <Eye className="w-4 h-4" />
                   </button>
                 </div>

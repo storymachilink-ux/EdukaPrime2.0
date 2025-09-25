@@ -9,14 +9,14 @@ export const Dashboard: React.FC = () => {
       value: '3',
       subtitle: 'nesta semana',
       icon: TrendingUp,
-      color: 'text-[#059669] dark:text-[#10B981]'
+      color: 'text-[#F59E0B]'
     },
     {
       title: 'Atividades Concluídas',
       value: '5/20',
       subtitle: 'este mês',
       icon: BookOpen,
-      color: 'text-[#3B82F6]'
+      color: 'text-[#033258]'
     },
     {
       title: 'Progresso Geral',
@@ -37,10 +37,10 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-[#1F1F1F] dark:text-[#F5F5F5] mb-2">
+        <h1 className="text-3xl font-bold text-[#033258] mb-2">
           Dashboard
         </h1>
-        <p className="text-[#5C5C5C] dark:text-[#A3A3A3]">
+        <p className="text-[#476178]">
           Acompanhe seu progresso e acesse seus conteúdos
         </p>
       </div>
@@ -50,17 +50,17 @@ export const Dashboard: React.FC = () => {
         {stats.map((stat, index) => (
           <Card key={index} hover>
             <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-full bg-[#F2E9E6] dark:bg-[#252119]`}>
+              <div className={`p-3 rounded-full bg-[#FFE3A0]`}>
                 <stat.icon className={`w-6 h-6 ${stat.color}`} strokeWidth={2} />
               </div>
               <div>
-                <h3 className="text-sm font-medium text-[#5C5C5C] dark:text-[#A3A3A3]">
+                <h3 className="text-sm font-medium text-[#476178]">
                   {stat.title}
                 </h3>
-                <p className="text-2xl font-bold text-[#1F1F1F] dark:text-[#F5F5F5]">
+                <p className="text-2xl font-bold text-[#033258]">
                   {stat.value}
                 </p>
-                <p className="text-xs text-[#5C5C5C] dark:text-[#A3A3A3]">
+                <p className="text-xs text-[#476178]">
                   {stat.subtitle}
                 </p>
               </div>
@@ -73,20 +73,20 @@ export const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <BookOpen className="w-5 h-5 text-[#111111] dark:text-white" />
-            <h2 className="text-lg font-bold text-[#1F1F1F] dark:text-[#F5F5F5]">
+            <BookOpen className="w-5 h-5 text-[#F59E0B]" />
+            <h2 className="text-lg font-bold text-[#033258]">
               Ação Rápida
             </h2>
           </div>
-          <p className="text-[#5C5C5C] dark:text-[#A3A3A3] mb-4">
+          <p className="text-[#476178] mb-4">
             Continue de onde parou ou explore novos conteúdos
           </p>
           <div className="space-y-2">
-            <button className="w-full text-left p-3 rounded-[12px] bg-[#F2E9E6] dark:bg-[#252119] hover:bg-[#F7D7D2] dark:hover:bg-[#2A1F1D] transition-colors">
-              <p className="font-medium text-[#1F1F1F] dark:text-[#F5F5F5]">
+            <button className="w-full text-left p-3 rounded-[14px] bg-[#FFE3A0] hover:bg-[#F59E0B] hover:text-white transition-all duration-200 focus:ring-2 focus:ring-[#F59E0B]/50">
+              <p className="font-medium text-[#033258] group-hover:text-white">
                 Continuar Atividade de Português
               </p>
-              <p className="text-sm text-[#5C5C5C] dark:text-[#A3A3A3]">
+              <p className="text-sm text-[#476178] group-hover:text-white/80">
                 Progresso: 60%
               </p>
             </button>
@@ -95,16 +95,16 @@ export const Dashboard: React.FC = () => {
 
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <Bell className="w-5 h-5 text-[#111111] dark:text-white" />
-            <h2 className="text-lg font-bold text-[#1F1F1F] dark:text-[#F5F5F5]">
+            <Bell className="w-5 h-5 text-[#F59E0B]" />
+            <h2 className="text-lg font-bold text-[#033258]">
               Notificações Recentes
             </h2>
           </div>
           <div className="space-y-3">
             {recentActivities.map((activity, index) => (
               <div key={index} className="flex items-start gap-2">
-                <div className="w-2 h-2 bg-[#059669] dark:bg-[#10B981] rounded-full mt-2" />
-                <p className="text-sm text-[#5C5C5C] dark:text-[#A3A3A3]">
+                <div className="w-2 h-2 bg-[#F59E0B] rounded-full mt-2" />
+                <p className="text-sm text-[#476178]">
                   {activity}
                 </p>
               </div>

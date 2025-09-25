@@ -35,7 +35,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF7F5] dark:bg-[#0F0F0F] flex">
+    <div className="min-h-screen bg-[#FFF9E8] flex">
       <Sidebar
         activeSection={activeSection}
         onSectionChange={setActiveSection}
@@ -47,7 +47,7 @@ export const Dashboard: React.FC = () => {
         <DashboardHeader />
         
         <main className="flex-1 p-6 pb-20 md:pb-6 overflow-auto">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto bg-[#FFF3D6] rounded-[14px] border border-[#FFE3A0] shadow-lg p-6">
             {renderContent()}
           </div>
         </main>

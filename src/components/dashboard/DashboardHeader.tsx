@@ -9,23 +9,25 @@ export const DashboardHeader: React.FC = () => {
   const { isDark, toggle } = useTheme();
 
   return (
-    <header className="bg-white dark:bg-[#1A1A1A] border-b border-[#E9DCD7] dark:border-[#2A2A2A] p-4">
+    <header className="bg-[#FFF3D6] border-b-2 border-[#FFE3A0] p-4 shadow-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 md:hidden">
-          <h1 className="text-xl font-bold text-[#1F1F1F] dark:text-[#F5F5F5]">
-            EdukaPrime
-          </h1>
+          <img
+            src="/logohorizontal.png"
+            alt="EdukaPrime"
+            className="h-6 w-auto"
+          />
         </div>
         
         <div className="flex items-center gap-4 ml-auto">
           <button
             onClick={toggle}
-            className="p-2 text-[#5C5C5C] dark:text-[#A3A3A3] hover:text-[#1F1F1F] dark:hover:text-[#F5F5F5] transition-colors"
+            className="p-2 text-[#476178] hover:text-[#033258] hover:bg-[#FBE9BE] rounded-[14px] transition-all duration-200 focus:ring-2 focus:ring-[#F59E0B]/50"
           >
             {isDark ? '☀️' : '🌙'}
           </button>
-          
-          <button className="p-2 text-[#5C5C5C] dark:text-[#A3A3A3] hover:text-[#1F1F1F] dark:hover:text-[#F5F5F5] transition-colors">
+
+          <button className="p-2 text-[#476178] hover:text-[#033258] hover:bg-[#FBE9BE] rounded-[14px] transition-all duration-200 focus:ring-2 focus:ring-[#F59E0B]/50">
             <Bell className="w-5 h-5" />
           </button>
           
@@ -36,10 +38,10 @@ export const DashboardHeader: React.FC = () => {
               className="w-8 h-8 rounded-full object-cover"
             />
             <div className="hidden sm:block">
-              <p className="text-sm font-medium text-[#1F1F1F] dark:text-[#F5F5F5]">
+              <p className="text-sm font-medium text-[#033258]">
                 {user?.name}
               </p>
-              <p className="text-xs text-[#5C5C5C] dark:text-[#A3A3A3] capitalize">
+              <p className="text-xs text-[#476178] capitalize">
                 Plano {user?.plan?.replace('-', ' ')}
               </p>
             </div>
