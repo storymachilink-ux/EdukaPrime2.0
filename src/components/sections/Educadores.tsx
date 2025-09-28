@@ -1,7 +1,7 @@
 import React from 'react';
-import { CheckCircle2, FileCheck, Shield, Clock } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Card, CardContent } from '../ui/card';
+import { Card, CardContent } from '../ui/Card';
 import { Marquee } from '../ui/3d-testimonails';
 
 export const Educadores: React.FC = () => {
@@ -187,13 +187,13 @@ export const Educadores: React.FC = () => {
             {/* Card 1 - Atividades Prontas */}
             <div className="relative group transition-all duration-300 rotate-[-1deg]">
               <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
-              <div className="relative p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <FileCheck className="w-6 h-6 text-[#033258]" />
-                  <h3 className="text-2xl font-semibold text-[#033258]">
-                    Atividades Prontas
-                  </h3>
+              <div className="relative p-6 text-center">
+                <div className="mb-4">
+                  <img src="/atividadesprontas.png" alt="Atividades Prontas" className="w-12 h-12 mx-auto" />
                 </div>
+                <h3 className="text-2xl font-semibold text-[#033258] mb-3">
+                  Atividades Prontas
+                </h3>
                 <p className="text-[#033258]">
                   Organizadas por tema e nível de dificuldade
                 </p>
@@ -204,13 +204,13 @@ export const Educadores: React.FC = () => {
             {/* Card 2 - 100% Alinhado à BNCC 2023 */}
             <div className="relative group transition-all duration-300 rotate-[1deg]">
               <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
-              <div className="relative p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <Shield className="w-6 h-6 text-[#033258]" />
-                  <h3 className="text-2xl font-semibold text-[#033258]">
-                    100% Alinhado à BNCC 2023
-                  </h3>
+              <div className="relative p-6 text-center">
+                <div className="mb-4">
+                  <img src="/bncc.png" alt="BNCC" className="w-12 h-12 mx-auto" />
                 </div>
+                <h3 className="text-2xl font-semibold text-[#033258] mb-3">
+                  100% Alinhado à BNCC 2023
+                </h3>
                 <p className="text-[#033258]">
                   Conteúdo atualizado e em conformidade
                 </p>
@@ -220,13 +220,13 @@ export const Educadores: React.FC = () => {
             {/* Card 3 - Planejamento Facilitado */}
             <div className="relative group transition-all duration-300 rotate-[-2deg]">
               <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
-              <div className="relative p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <Clock className="w-6 h-6 text-[#033258]" />
-                  <h3 className="text-2xl font-semibold text-[#033258]">
-                    Planejamento Facilitado
-                  </h3>
+              <div className="relative p-6 text-center">
+                <div className="mb-4">
+                  <img src="/planejamento.png" alt="Planejamento" className="w-12 h-12 mx-auto" />
                 </div>
+                <h3 className="text-2xl font-semibold text-[#033258] mb-3">
+                  Planejamento Facilitado
+                </h3>
                 <p className="text-[#033258]">
                   Nunca mais corra contra o tempo para preparar aulas
                 </p>
