@@ -142,46 +142,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    // Flag para saber se é a primeira vez
+    let isFirstLoad = true;
+
     // Timeout obrigatório para nunca ficar em loading infinito
     const loadingTimeout = setTimeout(() => {
-      console.warn('⚠️ Loading timeout - forçando saída');
+      console.warn('⚠️ Loading timeout - forçando saída do loading');
       setLoading(false);
-    }, 5000); // 5 segundos máximo
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      clearTimeout(loadingTimeout);
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        await createUserProfile(session.user);
-      }
-
-      setLoading(false);
-    }).catch(error => {
-      clearTimeout(loadingTimeout);
-      console.error('❌ Erro ao carregar sessão:', error);
-      setLoading(false);
-    });
+    }, 6000); // 6 segundos máximo
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state changed:', event);
-
-      // Ignorar evento INITIAL_SESSION se já temos um usuário
-      if (event === 'INITIAL_SESSION' && user) {
-        console.log('⏭️ INITIAL_SESSION ignorado - usuário já carregado');
-        return;
-      }
-
-      setSession(session);
-      setUser(session?.user ?? null);
+      console.log('🔄 Auth state changed:', event, 'Session:', session?.user?.email);
 
       try {
+        // Sempre atualizar session e user
+        setSession(session);
+        setUser(session?.user ?? null);
+
         if (session?.user) {
+          // Carregar profile do usuário
           await createUserProfile(session.user);
 
           // ═══════════════════════════════════════════════════════════════════════════
-          // NOVO: Ativar pending_plans com timeout
+          // Ativar pending_plans se houver (com timeout)
           // ═══════════════════════════════════════════════════════════════════════════
           if (session.user.email) {
             try {
@@ -216,7 +199,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error('❌ Erro ao processar auth:', error);
       } finally {
-        setLoading(false);
+        // Sempre sair do loading na primeira vez
+        if (isFirstLoad) {
+          clearTimeout(loadingTimeout);
+          setLoading(false);
+          isFirstLoad = false;
+        }
       }
     });
 
