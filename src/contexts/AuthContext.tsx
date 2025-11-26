@@ -72,17 +72,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setFetchingProfile(true);
       console.log('👤 Buscando perfil para:', user.email);
 
-      // Query com apenas os campos necessários (evita problemas de RLS)
-      const { data, error } = await supabase
+      // Query com timeout de 3 segundos (força resposta)
+      const queryPromise = supabase
         .from('users')
         .select('id, email, nome, active_plan_id, has_lifetime_access, is_admin, avatar_url, created_at, updated_at, plano_ativo, status, user_metadata')
         .eq('id', user.id)
         .maybeSingle();
 
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Query timeout (Supabase não respondeu em 3s)')), 3000)
+      );
+
+      let data, error;
+      try {
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        data = result?.data;
+        error = result?.error;
+      } catch (timeoutError) {
+        console.error('❌ Query travou no Supabase:', timeoutError);
+        error = timeoutError;
+        data = null;
+      }
+
       console.log('👤 Query respondeu. Data:', !!data, 'Error:', !!error);
 
       if (error) {
         console.warn('⚠️ Erro ao buscar perfil:', error.message);
+        console.log('🔄 Tentando query alternativa mais simples...');
+
+        // Tentar query ainda mais simples (só ID e email)
+        try {
+          const { data: simpleData, error: simpleError } = await Promise.race([
+            supabase
+              .from('users')
+              .select('id, email, nome, is_admin')
+              .eq('id', user.id)
+              .maybeSingle(),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Query timeout')), 2000)
+            )
+          ]) as any;
+
+          if (simpleData) {
+            console.log('✅ Query simples funcionou! Usando dados:', simpleData);
+            setProfile({
+              id: simpleData.id,
+              email: simpleData.email,
+              nome: simpleData.nome || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
+              active_plan_id: 0,
+              has_lifetime_access: false,
+              is_admin: simpleData.is_admin || false,
+              avatar_url: user.user_metadata?.avatar_url || null,
+            });
+            return;
+          }
+        } catch (fallbackError) {
+          console.warn('⚠️ Query simples também falhou:', fallbackError);
+        }
+
         // Criar perfil básico mesmo se falhar
         const basicProfile: UserProfile = {
           id: user.id,
