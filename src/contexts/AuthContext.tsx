@@ -99,12 +99,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('✅ Perfil encontrado');
         const existingProfile = data as UserProfile;
 
-        // Buscar active_plan_id dinâmicamente (com timeout)
-        const activePlanId = await Promise.race([
-          fetchActivePlanFromSubscriptions(user.id, existingProfile.active_plan_id || 0),
-          new Promise<number>(resolve => setTimeout(() => resolve(existingProfile.active_plan_id || 0), 3000))
-        ]);
-        existingProfile.active_plan_id = activePlanId;
+        // ✅ NÃO chamar RPC na restauração de sessão (F5)
+        // Apenas usar active_plan_id que já está no banco de dados
+        // O RPC será chamado em momentos apropriados (signup, etc)
 
         setProfile(existingProfile);
       } else {
