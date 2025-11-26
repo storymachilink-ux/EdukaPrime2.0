@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const createUserProfile = async (user: User, forceRefresh: boolean = false) => {
-    // Se já está buscando perfil, não fazer nada
+    // Se já está buscando perfil e não é refresh forçado, pular
     if (fetchingProfile && !forceRefresh) {
       console.log('⏭️ Já está buscando perfil, pulando...');
       return;
@@ -70,25 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setFetchingProfile(true);
-      console.log('👤 [1/4] Iniciando busca de perfil para:', user.email);
+      console.log('👤 Buscando perfil para:', user.email);
 
-      // Usar supabase client direto (mais confiável) - COM TIMEOUT
-      console.log('👤 [2/4] Fazendo query ao banco de dados...');
-      const queryPromise = supabase
+      // Query simples e direta - sem timeout, confiamos no Supabase
+      const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', user.id)
         .maybeSingle();
-
-      // Timeout de 2 segundos para a query
-      const { data, error } = await Promise.race([
-        queryPromise,
-        new Promise<any>((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout na query de usuarios')), 2000)
-        )
-      ]);
-
-      console.log('👤 [3/4] Query completada. Data:', !!data, 'Error:', !!error);
 
       if (error) {
         console.warn('⚠️ Erro ao buscar perfil:', error.message);
@@ -102,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           is_admin: false,
           avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
         };
-        console.log('👤 [3.5/4] Criando perfil fallback');
         setProfile(basicProfile);
         return;
       }
@@ -110,17 +98,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data) {
         console.log('✅ Perfil encontrado em banco');
         const existingProfile = data as UserProfile;
-
-        // ✅ NÃO chamar RPC na restauração de sessão (F5)
-        // Apenas usar active_plan_id que já está no banco de dados
-        // O RPC será chamado em momentos apropriados (signup, etc)
-
-        console.log('👤 [4/4] Setando profile encontrado');
+        console.log('   Email:', existingProfile.email);
+        console.log('   Nome:', existingProfile.nome);
+        console.log('   Is Admin:', existingProfile.is_admin);
         setProfile(existingProfile);
       } else {
-        console.log('➕ Nenhum perfil encontrado, criando novo...');
-
-        // Criar perfil básico
+        console.log('➕ Criando novo perfil...');
         const newProfile: UserProfile = {
           id: user.id,
           email: user.email || '',
@@ -130,13 +113,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           is_admin: false,
           avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
         };
-
-        console.log('👤 [4/4] Setando novo profile');
         setProfile(newProfile);
         console.log('✅ Perfil criado');
       }
     } catch (error) {
-      console.error('❌ [CATCH] Erro ao buscar/criar perfil:', error);
+      console.error('❌ Erro ao buscar/criar perfil:', error);
       // Criar perfil mínimo para não travar
       const fallbackProfile: UserProfile = {
         id: user.id,
@@ -146,10 +127,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         has_lifetime_access: false,
         is_admin: false,
       };
-      console.log('👤 [CATCH] Setando fallback profile');
       setProfile(fallbackProfile);
     } finally {
-      console.log('👤 [FINALLY] Finalizando createUserProfile');
       setFetchingProfile(false);
     }
   };
@@ -165,19 +144,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 6000); // 6 segundos máximo
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 [AUTH-1] Auth state changed:', event, 'Session:', session?.user?.email);
+      console.log('🔄 Auth state changed:', event, 'Session:', session?.user?.email);
 
       try {
         // Sempre atualizar session e user
-        console.log('🔄 [AUTH-2] Setando session e user');
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
           // Carregar profile do usuário
-          console.log('🔄 [AUTH-3] Iniciando createUserProfile');
           await createUserProfile(session.user);
-          console.log('🔄 [AUTH-4] createUserProfile completado');
 
           // ═══════════════════════════════════════════════════════════════════════════
           // Ativar pending_plans se houver (com timeout)
@@ -213,12 +189,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(null);
         }
       } catch (error) {
-        console.error('❌ [AUTH-CATCH] Erro ao processar auth:', error);
+        console.error('❌ Erro ao processar auth:', error);
       } finally {
-        console.log('🔄 [AUTH-FINALLY] Finally da onAuthStateChange. isFirstLoad:', isFirstLoad);
         // Sempre sair do loading na primeira vez
         if (isFirstLoad) {
-          console.log('🔄 [AUTH-FINALLY-2] Limpando timeout e setando loading = false');
           clearTimeout(loadingTimeout);
           setLoading(false);
           isFirstLoad = false;
