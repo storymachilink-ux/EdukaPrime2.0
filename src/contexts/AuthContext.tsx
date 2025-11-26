@@ -72,12 +72,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setFetchingProfile(true);
       console.log('👤 Buscando perfil para:', user.email);
 
-      // Query simples e direta - sem timeout, confiamos no Supabase
+      // Query com apenas os campos necessários (evita problemas de RLS)
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select('id, email, nome, active_plan_id, has_lifetime_access, is_admin, avatar_url, created_at, updated_at, plano_ativo, status, user_metadata')
         .eq('id', user.id)
         .maybeSingle();
+
+      console.log('👤 Query respondeu. Data:', !!data, 'Error:', !!error);
 
       if (error) {
         console.warn('⚠️ Erro ao buscar perfil:', error.message);
