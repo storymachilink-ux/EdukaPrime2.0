@@ -253,11 +253,68 @@ export default function Atividades() {
     return uniqueThemes as string[];
   }, [papercrafts]);
 
+  // Mapa de emojis por tema
+  const themeEmojis: Record<string, string> = {
+    'Natal': '🎄',
+    'Páscoa': '🐰',
+    'Dia das Mães': '💐',
+    'Dia dos Pais': '👔',
+    'Halloween': '🎃',
+    'Carnaval': '🎭',
+    'São João': '🔥',
+    'Volta às Aulas': '📚',
+    'Educação Financeira': '💰',
+    'Leitura': '📖',
+    'Artes': '🎨',
+    'Natureza': '🌿',
+    'Animais': '🦁',
+    'Espaço': '🚀',
+    'Diversidade': '🌈',
+  };
+
+  // Função para obter emoji do tema (usa first letter padrão se não tiver mapping)
+  const getThemeEmoji = (theme: string): string => {
+    return themeEmojis[theme] || '✨';
+  };
+
   // Filtrar papercrafts por tema selecionado
   const papercraftsFiltrados = useMemo(() => {
     if (!selectedTheme) return papercrafts;
     return papercrafts.filter(p => p.theme === selectedTheme);
   }, [papercrafts, selectedTheme]);
+
+  // Agrupar papercrafts por tema
+  const groupedPapercrafts = useMemo(() => {
+    if (selectedTheme) {
+      // Se um tema está selecionado, retornar apenas esse tema
+      return { [selectedTheme]: papercraftsFiltrados };
+    }
+
+    // Caso contrário, agrupar todos os papercrafts por tema
+    const grouped: Record<string, PaperCraft[]> = {};
+    papercrafts.forEach(pc => {
+      const theme = pc.theme || 'Outros';
+      if (!grouped[theme]) {
+        grouped[theme] = [];
+      }
+      grouped[theme].push(pc);
+    });
+
+    // Ordenar temas: usar a ordem de 'themes' se disponível
+    const orderedGrouped: Record<string, PaperCraft[]> = {};
+    themes.forEach(theme => {
+      if (grouped[theme]) {
+        orderedGrouped[theme] = grouped[theme];
+      }
+    });
+
+    // Adicionar "Outros" no final se existir
+    if (grouped['Outros']) {
+      orderedGrouped['Outros'] = grouped['Outros'];
+    }
+
+    return orderedGrouped;
+  }, [papercrafts, papercraftsFiltrados, selectedTheme, themes]);
 
   // Filtrar atividades
   const atividadesFiltradas = useMemo(() => {
@@ -737,21 +794,37 @@ export default function Atividades() {
               </div>
             )}
 
-            {/* Grid de PaperCrafts - 2 por linha */}
+            {/* Papercrafts Agrupados por Tema */}
             {!papercraftsLoading && papercraftsFiltrados.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {papercraftsFiltrados.map((papercraft) => (
-                  <PaperCraftCardForActivities
-                    key={papercraft.id}
-                    papercraft={papercraft}
-                    onDetailsClick={async (pc) => {
-                      if (userHasAccessToPapercraft(pc)) {
-                        setSelectedPapercraft(pc);
-                      } else {
-                        setDeniedModalOpen(true);
-                      }
-                    }}
-                  />
+              <div className="space-y-10">
+                {Object.entries(groupedPapercrafts).map(([theme, items]) => (
+                  <div key={theme} className="animate-fade-in">
+                    {/* Header do Tema */}
+                    <div className="flex items-center gap-3 mb-6">
+                      <span className="text-3xl">{getThemeEmoji(theme)}</span>
+                      <h3 className="text-2xl font-bold text-[#0F2741]">{theme}</h3>
+                      <span className="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                        {items.length}
+                      </span>
+                    </div>
+
+                    {/* Grid de Papercrafts - 2 por linha */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {items.map((papercraft) => (
+                        <PaperCraftCardForActivities
+                          key={papercraft.id}
+                          papercraft={papercraft}
+                          onDetailsClick={async (pc) => {
+                            if (userHasAccessToPapercraft(pc)) {
+                              setSelectedPapercraft(pc);
+                            } else {
+                              setDeniedModalOpen(true);
+                            }
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
