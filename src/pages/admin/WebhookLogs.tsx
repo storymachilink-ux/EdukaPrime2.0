@@ -93,36 +93,7 @@ export default function WebhookLogs() {
     return badges[status] || badges.pending;
   };
 
-  const extractProducts = (payload: any): string[] => {
-    if (!payload) return [];
-
-    const products: string[] = [];
-
-    // VEGA: procura por items/products no payload
-    if (payload.items && Array.isArray(payload.items)) {
-      payload.items.forEach((item: any) => {
-        if (item.id || item.code || item.name) {
-          products.push(item.code || item.id || item.name);
-        }
-      });
-    }
-
-    // VEGA: procura por product_id ou sku
-    if (payload.product_id || payload.sku) {
-      products.push(payload.product_id || payload.sku);
-    }
-
-    // GGCHECKOUT e outros: procura em products
-    if (payload.products && Array.isArray(payload.products)) {
-      payload.products.forEach((p: any) => {
-        if (p.id || p.code || p.name) {
-          products.push(p.code || p.id || p.name);
-        }
-      });
-    }
-
-    return products.length > 0 ? products : ['Sem produtos'];
-  };
+  // ✨ REMOVIDO: extractProducts agora usa product_id do banco de dados
 
   const stats = {
     total: logs.length,
@@ -296,13 +267,20 @@ export default function WebhookLogs() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        <div className="flex flex-wrap gap-1">
-                          {extractProducts(log.raw_payload).map((product, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold border border-purple-300">
-                              {product}
+                        {log.product_id ? (
+                          <div className="space-y-1">
+                            <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold border border-purple-300">
+                              📦 {log.product_id}
                             </span>
-                          ))}
-                        </div>
+                            {log.product_title && (
+                              <div className="text-xs text-gray-600 truncate max-w-xs">
+                                {log.product_title}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs">Sem produto</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold">
                         R$ {typeof log.amount === 'number' ? log.amount.toFixed(2) : '0.00'}
