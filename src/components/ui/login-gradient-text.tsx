@@ -9,6 +9,16 @@ export function LoginGradientText() {
 
   return (
     <div className="w-full max-w-md mt-5 px-4" style={{ textAlign: 'center' }}>
+      {/* Imagem de Suporte */}
+      <div className="mb-4 rounded-xl overflow-hidden shadow-md">
+        <img
+          src="/compra.webp"
+          alt="Suporte EdukaPrime"
+          className="w-full h-auto object-cover"
+          loading="lazy"
+        />
+      </div>
+
       <button
         onClick={handleWhatsAppClick}
         className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-3 transition-all shadow-lg hover:shadow-xl"
