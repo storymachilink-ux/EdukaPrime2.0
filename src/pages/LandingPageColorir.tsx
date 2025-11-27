@@ -25,14 +25,6 @@ export default function LandingPageColorir() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Redirecionar para dashboard se usuário já estiver logado
-  React.useEffect(() => {
-    if (user) {
-      console.log('✅ Usuário logado detectado na landing page colorir, redirecionando...');
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
-
   return (
     <div className="min-h-screen bg-[#FFF7F5]">
       <HeaderColorir />

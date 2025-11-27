@@ -59,13 +59,6 @@ function LandingPage() {
     navigate('/login');
   };
 
-  // Redirecionar para dashboard se usuário já estiver logado
-  React.useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
-
   return (
     <div className="min-h-screen bg-[#FFF7F5] overflow-hidden">
       <Header onLoginClick={handleLoginClick} />
