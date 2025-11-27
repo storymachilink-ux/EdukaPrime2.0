@@ -154,9 +154,20 @@ exports.handler = async (event, context) => {
             .eq('email', customer.email.toLowerCase())
             .maybeSingle();
 
-          // Calcular data de expiração
-          const expirationDate = new Date();
-          expirationDate.setDate(expirationDate.getDate() + 30); // Vega padrão 30 dias
+          // Buscar tipo de plano para calcular expiração corretamente
+          const { data: planFullData, error: planFullError } = await supabase
+            .from('plans_v2')
+            .select('payment_type')
+            .eq('id', planId)
+            .single();
+
+          // Se é plano mensal, expira em 30 dias
+          // Se é plano único/vitalício, NUNCA expira (end_date = NULL)
+          let expirationDate = null;
+          if (planFullData?.payment_type === 'mensal') {
+            expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 30);
+          }
 
           if (!existingUser) {
             console.log(`  👤 Usuário não encontrado. Inserindo em ⏳ Planos Pendentes...`);
@@ -177,7 +188,7 @@ exports.handler = async (event, context) => {
                 product_name: product.title || planName,
                 product_code: product.code,
                 start_date: new Date().toISOString(),
-                end_date: expirationDate.toISOString()
+                end_date: expirationDate ? expirationDate.toISOString() : null
               });
 
             if (pendingError) {
@@ -198,7 +209,7 @@ exports.handler = async (event, context) => {
                 plan_id: planId,
                 status: 'active',
                 start_date: new Date().toISOString(),
-                end_date: expirationDate.toISOString(),
+                end_date: expirationDate ? expirationDate.toISOString() : null,
                 payment_id: transaction.id,
                 product_id_gateway: product.code,
                 payment_method: transaction.paymentMethod,

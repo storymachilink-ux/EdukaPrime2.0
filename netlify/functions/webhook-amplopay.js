@@ -143,14 +143,26 @@ exports.handler = async (event, context) => {
       console.warn('⚠️ Webhook não foi registrado, continuando sem webhook_id');
     }
 
-    // Calcular data de expiração (PIX = 30 dias, Cartão = 90 dias)
-    const isPix = payment.method.includes('pix');
-    const daysToAdd = isPix ? 30 : 90;
-    const expirationDate = new Date();
-    expirationDate.setDate(expirationDate.getDate() + daysToAdd);
+    // Buscar tipo de plano para calcular expiração corretamente
+    const { data: planFullData, error: planFullError } = await supabase
+      .from('plans_v2')
+      .select('payment_type')
+      .eq('ggcheckout_product_id', productId)
+      .single();
 
-    console.log(`📅 Método: ${isPix ? 'PIX' : 'Cartão'} → ${daysToAdd} dias de acesso`);
-    console.log(`📅 Expira em: ${expirationDate.toISOString()}`);
+    // Se é plano mensal, expira conforme método (PIX = 30 dias, Cartão = 90 dias)
+    // Se é plano único/vitalício, NUNCA expira (end_date = NULL)
+    let expirationDate = null;
+    if (planFullData?.payment_type === 'mensal') {
+      const isPix = payment.method.includes('pix');
+      const daysToAdd = isPix ? 30 : 90;
+      expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + daysToAdd);
+      console.log(`📅 Método: ${isPix ? 'PIX' : 'Cartão'} → ${daysToAdd} dias de acesso`);
+      console.log(`📅 Expira em: ${expirationDate.toISOString()}`);
+    } else {
+      console.log(`📅 Plano vitalício/único → Sem data de expiração`);
+    }
 
     // Buscar usuário pelo email
     const { data: existingUser, error: userError } = await supabase
@@ -197,7 +209,7 @@ exports.handler = async (event, context) => {
           product_name: planName,
           product_code: productId,
           start_date: new Date().toISOString(),
-          end_date: expirationDate.toISOString()
+          end_date: expirationDate ? expirationDate.toISOString() : null
         });
 
       if (pendingError) {
@@ -232,7 +244,7 @@ exports.handler = async (event, context) => {
           plan_id: planData.id,
           status: 'active',
           start_date: new Date().toISOString(),
-          end_date: expirationDate.toISOString(),
+          end_date: expirationDate ? expirationDate.toISOString() : null,
           payment_id: payment.id,
           product_id_gateway: productId,
           payment_method: payment.method,
