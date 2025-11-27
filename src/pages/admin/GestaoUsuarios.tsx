@@ -163,28 +163,7 @@ export default function GestaoUsuarios() {
 
       console.log('✅ Usuário atualizado no banco:', data);
 
-      // 2. Tentar registrar no histórico (não crítico)
-      if (planoMudou && usuarioOriginal) {
-        console.log('📜 Registrando no histórico de planos...');
-        const { error: historyError } = await supabase
-          .from('user_plan_history')
-          .insert([{
-            user_id: modalEdit.id,
-            plano_anterior: usuarioOriginal.plano_ativo,
-            plano_novo: modalEdit.plano_ativo,
-            motivo: 'admin_change',
-            changed_by: null // Pode adicionar ID do admin depois
-          }]);
-
-        if (historyError) {
-          console.warn('⚠️ Erro ao registrar histórico (não crítico):', historyError);
-          // Não bloqueia a operação
-        } else {
-          console.log('✅ Histórico registrado');
-        }
-      }
-
-      // 3. Recarregar lista de usuários
+      // 2. Recarregar lista de usuários
       await fetchUsuarios();
       setModalEdit(null);
 
