@@ -10,14 +10,12 @@ export function LoginGradientText() {
   return (
     <div className="w-full max-w-md mt-5 px-4" style={{ textAlign: 'center' }}>
       {/* Imagem de Suporte */}
-      <div className="mb-4 rounded-xl overflow-hidden shadow-md">
-        <img
-          src="/compra.webp"
-          alt="Suporte EdukaPrime"
-          className="w-full h-auto object-cover"
-          loading="lazy"
-        />
-      </div>
+      <img
+        src="/compra.webp"
+        alt="Suporte EdukaPrime"
+        className="w-full h-auto mb-4"
+        loading="lazy"
+      />
 
       <button
         onClick={handleWhatsAppClick}
