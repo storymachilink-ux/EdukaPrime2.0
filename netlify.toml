@@ -1,6 +1,6 @@
 [build]
-  command = "npm run build"
-  publish = "dist"
+  command = "cd landing-page && npm install && npm run build"
+  publish = "landing-page/dist"
 
 [functions]
   directory = "netlify/functions"
