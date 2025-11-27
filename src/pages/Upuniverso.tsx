@@ -116,6 +116,10 @@ export default function Upuniverso() {
     window.open('https://checkout.edukaprime.com.br/VCCL1O8SCGFN', '_blank');
   };
 
+  const handleRejectOffer = () => {
+    navigate('/login');
+  };
+
   return (
     <div className="min-h-screen bg-[#fa3f6b] overflow-hidden flex flex-col items-center justify-start pt-8">
       <style>{`
@@ -287,22 +291,6 @@ export default function Upuniverso() {
                 <div className="text-sm text-gray-600 font-medium">
                   🕒 Seu desconto expira em <span className="text-lg font-bold text-red-500">{formatTime(timeLeft)}</span>
                 </div>
-
-                {/* Mini Badges - 3 itens */}
-                <div className="grid grid-cols-3 gap-2 pt-2 text-xs">
-                  <div className="bg-white rounded-lg p-2">
-                    <div className="text-lg mb-1">🧩</div>
-                    <div className="font-semibold text-gray-700">Habilidades motoras</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-2">
-                    <div className="text-lg mb-1">🎯</div>
-                    <div className="font-semibold text-gray-700">Foco e disciplina</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-2">
-                    <div className="text-lg mb-1">🎭</div>
-                    <div className="font-semibold text-gray-700">Imaginação ativa</div>
-                  </div>
-                </div>
               </div>
 
               {/* Box de Preço - Amarelo Ouro */}
@@ -334,29 +322,19 @@ export default function Upuniverso() {
                 <span>♾️ Sem mensalidade</span>
               </div>
 
-              {/* Mini Depoimento */}
-              <div className="bg-purple-50 rounded-lg p-4 border-l-4" style={{ borderColor: '#5034ff' }}>
-                <p className="text-xs text-gray-700 italic mb-3">
-                  "Todo dia monto um com minha filha, ela ama e sempre fica horas concetrada acho lindo ver eles montadinhos depois"
+              {/* Aviso - Única Oportunidade */}
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                <p className="text-xs text-red-600 font-semibold text-center">
+                  ⚠️ Esse produto não pode ser adquirido depois, única oportunidade de comprar
                 </p>
-                <div className="flex items-center gap-2">
-                  <img
-                    src="/mariana.webp"
-                    alt="Mariana"
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                  />
-                  <div className="text-xs font-semibold text-gray-700">
-                    ⭐⭐⭐⭐⭐<br />Mariana Klein
-                  </div>
-                </div>
               </div>
 
-              {/* Botão Secundário */}
+              {/* Botão Rejeitar Oferta - Grande e Destacado */}
               <button
-                onClick={handleCloseModal}
-                className="w-full py-2 px-4 rounded-lg text-gray-600 font-medium text-sm transition-colors hover:bg-gray-100"
+                onClick={handleRejectOffer}
+                className="w-full py-4 px-6 rounded-xl text-gray-700 font-bold text-base transition-colors duration-300 bg-gray-200 hover:bg-gray-300 border-2 border-gray-400"
               >
-                ❌ Ainda não, prefiro perder o desconto
+                ❌ Rejeitar OFERTA, quero acessar meu produto
               </button>
             </div>
           </div>
