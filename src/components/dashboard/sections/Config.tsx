@@ -76,7 +76,7 @@ const planInfo: Record<PlanKey, {
 
 export const Config: React.FC = () => {
   const { currentPlan } = usePermissions();
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
   const { isAdmin } = useAdminPlan();
   const { trackCheckoutOpen } = usePixelTracking();
 
@@ -156,6 +156,34 @@ export const Config: React.FC = () => {
           <Info className="h-4 w-4" /> Personalize sua experiência no EdukaPrime
         </span>
       </header>
+
+      {/* MEU AVATAR SECTION */}
+      <section className="mb-8 rounded-2xl border border-[#FFE3A0] bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-lg font-semibold text-[#033258]">Meu Avatar</h2>
+        <p className="mb-4 text-sm text-[#624044]">Personalize sua foto de perfil</p>
+
+        <div className="mb-4 flex items-center gap-4">
+          <img
+            src={profile?.avatar_url || '/icon.webp'}
+            alt={profile?.nome || 'Avatar'}
+            className="h-24 w-24 rounded-full object-cover border-2 border-[#FFE3A0]"
+          />
+          <div>
+            <p className="font-medium text-[#033258]">{profile?.nome || 'Usuário'}</p>
+            <p className="text-sm text-[#624044]">{profile?.email}</p>
+          </div>
+        </div>
+
+        <div className="mb-4 rounded-lg bg-[#FFF9E8] p-3 text-sm text-[#624044]">
+          <p>ℹ️ Formatos aceitos: JPG, PNG, GIF, WEBP</p>
+          <p>ℹ️ Tamanho máximo: 2MB</p>
+          <p>ℹ️ Recomendado: imagens quadradas (200x200px)</p>
+        </div>
+
+        <button className="inline-flex items-center rounded-xl border border-[#FFE3A0] bg-[#FFF3D6] px-4 py-2 text-[#033258] hover:bg-[#FFE3A0] transition-colors duration-200">
+          🖼️ Trocar Avatar
+        </button>
+      </section>
 
       {/* ADMIN PANEL - Only visible to admins */}
       {isAdmin && (
