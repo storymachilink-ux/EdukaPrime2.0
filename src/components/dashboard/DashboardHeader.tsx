@@ -10,7 +10,7 @@ import { Button } from '../ui/button';
 import { NotificationsModal } from '../ui/NotificationsModal';
 
 export const DashboardHeader: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, profile } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const handleLogout = () => {
@@ -174,13 +174,13 @@ export const DashboardHeader: React.FC = () => {
 
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <img
-              src={avatarUrl || user?.avatar || '/icon.webp'}
-              alt={user?.name}
+              src={avatarUrl || profile?.avatar_url || '/icon.webp'}
+              alt={profile?.nome || user?.email}
               className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0"
             />
             <div className="hidden sm:block min-w-0 flex-1">
               <p className="text-sm font-medium text-[#033258] truncate">
-                {user?.name}
+                {profile?.nome || user?.email?.split('@')[0]}
               </p>
               <p className={`text-xs capitalize flex items-center gap-1 truncate ${isSimulating ? 'text-yellow-600' : 'text-[#476178]'}`}>
                 {isSimulating && <Crown className="w-3 h-3 flex-shrink-0" />}
