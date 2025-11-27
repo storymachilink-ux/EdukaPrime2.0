@@ -245,9 +245,19 @@ export default function GestaoUsuarios() {
     try {
       setSaving(true);
 
+      // Buscar o plano para verificar o tipo (mensal ou unico)
+      const selectedPlan = allPlans.find(p => p.id === selectedPlanToAdd);
+      if (!selectedPlan) throw new Error('Plano não encontrado');
+
       const today = new Date();
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + 30);
+
+      // Se é plano mensal, expira em 30 dias
+      // Se é plano único/vitalício, NUNCA expira (end_date = NULL)
+      let endDate = null;
+      if (selectedPlan.payment_type === 'mensal') {
+        endDate = new Date();
+        endDate.setDate(endDate.getDate() + 30);
+      }
 
       // 1. Criar novo registro em user_subscriptions
       const { error: subError } = await supabase
@@ -257,7 +267,7 @@ export default function GestaoUsuarios() {
           plan_id: selectedPlanToAdd,
           status: 'active',
           start_date: today.toISOString(),
-          end_date: endDate.toISOString(),
+          end_date: endDate ? endDate.toISOString() : null,
           auto_renew: false,
         });
 
@@ -269,7 +279,7 @@ export default function GestaoUsuarios() {
         .update({
           active_plan_id: selectedPlanToAdd,
           plano_ativo: selectedPlanToAdd,
-          data_expiracao_plano: endDate.toISOString().split('T')[0]
+          data_expiracao_plano: endDate ? endDate.toISOString().split('T')[0] : null
         })
         .eq('id', modalEdit.id);
 
