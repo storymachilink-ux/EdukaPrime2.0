@@ -41,7 +41,7 @@ export default function WebhookLogs() {
     try {
       let query = supabase
         .from('webhook_logs')
-        .select('*')
+        .select('*, product_id, product_title')
         .order('created_at', { ascending: false });
 
       // Filtro por status
