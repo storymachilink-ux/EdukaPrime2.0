@@ -32,8 +32,9 @@ export default function WebhookLogs() {
   const [filterDateRange, setFilterDateRange] = useState<string>('7'); // dias
 
   useEffect(() => {
+    // Carregar apenas uma vez ao abrir a página
     loadLogs();
-  }, [filterStatus, filterDateRange]);
+  }, []);
 
   const loadLogs = async () => {
     setLoading(true);
