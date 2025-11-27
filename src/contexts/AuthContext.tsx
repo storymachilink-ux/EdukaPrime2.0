@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [fetchingProfile, setFetchingProfile] = useState(false);
   const [lastKnownAdminStatus, setLastKnownAdminStatus] = useState<Map<string, boolean>>(new Map());
 
-  // Determinar se usuário deve ser admin (múltiplas estratégias)
+  // Determinar se usuário deve ser admin (múltiplas estratégias com localStorage cache)
   const isUserAdmin = (user: User, lastKnownStatus?: boolean): boolean => {
     // 1. Verificar JWT claims / user_metadata
     if (user.user_metadata?.is_admin === true) return true;
@@ -48,19 +48,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const jwtPayload = user.user_metadata as any;
     if (jwtPayload?.admin === true || jwtPayload?.role === 'admin') return true;
 
-    // 3. Se já foi admin antes (cache), manter status até conseguir confirmar do banco
+    // 3. Verificar localStorage cache (persiste entre page reloads)
+    try {
+      const cachedAdminStatus = localStorage.getItem(`admin_status_${user.id}`);
+      if (cachedAdminStatus === 'true') {
+        console.log('💾 Usando status de admin do localStorage (query falhou, mas mantendo acesso)');
+        return true;
+      }
+    } catch (e) {
+      // localStorage pode não estar disponível em alguns contextos
+    }
+
+    // 4. Se já foi admin antes (in-memory cache), manter status
     if (lastKnownStatus === true) {
-      console.log('⚠️ Usando status de admin em cache (query falhou, mas mantendo acesso)');
+      console.log('⚠️ Usando status de admin em cache in-memory (query falhou, mas mantendo acesso)');
       return true;
     }
 
-    // 4. Email admin (fallback final para email específico)
-    const adminEmails = ['admin@edukaprime.com', 'miguel@edukaprime.com'];
+    // 5. Email admin (fallback final para email específico)
+    const adminEmails = ['admin@edukaprime.com', 'miguel@edukaprime.com', 'joia@hotmail.com'];
     if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+      console.log('✅ Usuário encontrado na admin email list');
       return true;
     }
 
     return false;
+  };
+
+  // Helper para guardar admin status em localStorage
+  const cacheAdminStatus = (userId: string, isAdmin: boolean) => {
+    try {
+      if (isAdmin) {
+        localStorage.setItem(`admin_status_${userId}`, 'true');
+      } else {
+        localStorage.removeItem(`admin_status_${userId}`);
+      }
+    } catch (e) {
+      // localStorage pode não estar disponível
+    }
   };
 
   // Buscar active_plan_id dinamicamente (prefere subscriptions pagas, fallback para active_plan_id do users)
@@ -157,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Criar perfil básico mesmo se falhar
-        // Usar múltiplas estratégias para determinar admin (não apenas user_metadata)
+        // Usar múltiplas estratégias para determinar admin (localStorage, in-memory cache, JWT, email)
         const lastKnownAdmin = lastKnownAdminStatus.get(user.id);
         const adminStatus = isUserAdmin(user, lastKnownAdmin);
 
@@ -170,11 +195,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           is_admin: adminStatus,
           avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
         };
-        console.log('⚠️ Usando perfil básico com is_admin:', adminStatus, '(cache:', lastKnownAdmin, ')');
+        console.log('⚠️ Usando perfil básico com is_admin:', adminStatus, '(localStorage/cache/jwt/email fallback)');
         setProfile(basicProfile);
 
-        // Se conseguimos determinar que é admin via cache/JWT, guardar isso
-        if (adminStatus && !lastKnownAdmin) {
+        // Cachear o status determinado
+        if (adminStatus) {
+          cacheAdminStatus(user.id, true);
           setLastKnownAdminStatus(prev => new Map(prev).set(user.id, true));
         }
         return;
@@ -194,10 +220,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setProfile(profileWithAvatar);
 
-        // Cachear admin status bem-sucedido
-        if (existingProfile.is_admin) {
-          setLastKnownAdminStatus(prev => new Map(prev).set(user.id, true));
-        }
+        // Cachear admin status bem-sucedido (localStorage + in-memory)
+        cacheAdminStatus(user.id, existingProfile.is_admin);
+        setLastKnownAdminStatus(prev => new Map(prev).set(user.id, existingProfile.is_admin));
       } else {
         console.log('➕ Criando novo perfil...');
         const newProfile: UserProfile = {
@@ -210,6 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
         };
         setProfile(newProfile);
+        cacheAdminStatus(user.id, false);
         console.log('✅ Perfil criado');
       }
     } catch (error) {
@@ -227,11 +253,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         is_admin: adminStatus,
         avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
       };
-      console.log('⚠️ Usando fallback final com is_admin:', adminStatus);
+      console.log('⚠️ Usando fallback final com is_admin:', adminStatus, '(localStorage/cache/jwt/email)');
       setProfile(fallbackProfile);
 
       // Cachear se conseguimos determinar admin
-      if (adminStatus && !lastKnownAdmin) {
+      if (adminStatus) {
+        cacheAdminStatus(user.id, true);
         setLastKnownAdminStatus(prev => new Map(prev).set(user.id, true));
       }
     } finally {
