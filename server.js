@@ -1,6 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,14 +18,16 @@ let webhookAmplopay;
 let webhookVega;
 
 try {
-  webhookAmplopay = require('./netlify/functions/webhook-amplopay.js').handler;
+  const amplopayModule = await import('./netlify/functions/webhook-amplopay.js');
+  webhookAmplopay = amplopayModule.handler;
   console.log('✅ Webhook Amplopay carregado');
 } catch (error) {
   console.error('❌ Erro ao carregar webhook-amplopay:', error.message);
 }
 
 try {
-  webhookVega = require('./netlify/functions/webhook-vega.js').handler;
+  const vegaModule = await import('./netlify/functions/webhook-vega.js');
+  webhookVega = vegaModule.handler;
   console.log('✅ Webhook Vega carregado');
 } catch (error) {
   console.error('❌ Erro ao carregar webhook-vega:', error.message);
