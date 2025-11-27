@@ -562,6 +562,7 @@ export default function GestaoUsuarios() {
                   setActiveTab('info');
                   setPlanHistory([]);
                   setActivityHistory([]);
+                  setUserSubscriptions([]);
                 }} className="text-gray-400 hover:text-gray-600">
                   <X className="w-5 h-5" />
                 </button>
@@ -582,7 +583,8 @@ export default function GestaoUsuarios() {
                 <button
                   onClick={() => {
                     setActiveTab('planos_ativos');
-                    if (userSubscriptions.length === 0) fetchUserSubscriptions(modalEdit.id);
+                    // Always fetch subscriptions to ensure we show the correct user's data
+                    fetchUserSubscriptions(modalEdit.id);
                   }}
                   className={`flex items-center gap-2 px-4 py-2 font-medium transition-colors whitespace-nowrap ${
                     activeTab === 'planos_ativos'
@@ -670,6 +672,7 @@ export default function GestaoUsuarios() {
                     onClick={() => {
                       setModalEdit(null);
                       setActiveTab('info');
+                      setUserSubscriptions([]);
                     }}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
