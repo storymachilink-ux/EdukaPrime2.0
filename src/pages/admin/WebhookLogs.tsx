@@ -227,14 +227,13 @@ export default function WebhookLogs() {
                   <th className="px-4 py-3 text-left text-sm font-semibold">Cliente</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">Produtos</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">Valor</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Método</th>
                   <th className="px-4 py-3 text-center text-sm font-semibold">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center">
+                    <td colSpan={6} className="px-4 py-12 text-center">
                       <div className="flex items-center justify-center gap-2 text-gray-600">
                         <RefreshCw className="w-5 h-5 animate-spin" />
                         Carregando logs...
@@ -243,7 +242,7 @@ export default function WebhookLogs() {
                   </tr>
                 ) : filteredLogs.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-gray-600">
+                    <td colSpan={6} className="px-4 py-12 text-center text-gray-600">
                       Nenhum log encontrado
                     </td>
                   </tr>
@@ -285,9 +284,6 @@ export default function WebhookLogs() {
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold">
                         R$ {typeof log.amount === 'number' ? log.amount.toFixed(2) : '0.00'}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {log.payment_method?.toLowerCase().includes('pix') ? '🔷 PIX' : '💳 Cartão'}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <button
