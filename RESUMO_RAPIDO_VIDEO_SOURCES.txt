@@ -1,0 +1,224 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    MÚLTIPLAS PLATAFORMAS DE VÍDEO
+                        RESUMO RÁPIDO
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 OBJETIVO
+───────────
+Permitir armazenar YouTube, Wistia e Vturb para cada vídeo com fallback automático.
+
+📊 ARQUITETURA
+───────────────
+
+ANTES (YouTube only):
+┌─────────────┐
+│   videos    │
+├─────────────┤
+│ id          │
+│ title       │
+│ youtube_url │ ← ÚNICO (sem alternativas)
+└─────────────┘
+
+DEPOIS (Múltiplas plataformas):
+┌─────────────┐         ┌──────────────────┐
+│   videos    │◄──────n─ m│ video_sources    │
+├─────────────┤         ├──────────────────┤
+│ id          │         │ id               │
+│ title       │         │ video_id    (FK) │
+│ description │         │ source_type      │
+│ category    │         │ source_data      │
+│ ...         │         │ is_primary (*)   │
+└─────────────┘         └──────────────────┘
+                             ↓
+                    YouTube | Wistia | Vturb
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📝 ARQUIVOS CRIADOS
+───────────────────
+
+1. supabase/migrations/20250127000100_add_video_sources.sql
+   └─ Migração SQL principal (EXECUTAR NO SUPABASE)
+   └─ Cria tabela, índices, RPCs e RLS
+   └─ Migra dados automaticamente
+
+2. supabase/migrations/VIDEO_SOURCES_GUIDE.md
+   └─ Documentação técnica detalhada
+   └─ Exemplos de dados por plataforma
+   └─ Como usar as RPCs
+
+3. supabase/migrations/TEST_video_sources.sql
+   └─ Script para testar a migração
+   └─ Valida tabela, índices, RLS, dados
+
+4. INSTRUCOES_VIDEO_SOURCES.md
+   └─ Instruções passo-a-passo
+   └─ Guia de execução
+   └─ Troubleshooting
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 EXECUTAR AGORA (3 passos)
+────────────────────────────
+
+PASSO 1: Executar migração SQL
+  1. Abra: https://app.supabase.com/
+  2. Projeto → SQL Editor → + New Query
+  3. Cole: supabase/migrations/20250127000100_add_video_sources.sql
+  4. Clique: Run
+  5. Resultado: ✅ CREATE FUNCTION, GRANT EXECUTE
+
+PASSO 2: Testar migração
+  1. SQL Editor → + New Query
+  2. Cole: supabase/migrations/TEST_video_sources.sql
+  3. Execute queries uma por uma
+  4. Verifique: tabela criada, dados migrados, RLS ativado
+
+PASSO 3: Validar dados
+  SQL:
+  SELECT COUNT(*) FROM public.video_sources;
+
+  Resultado esperado:
+  ✅ Múltiplas linhas (um registro por vídeo YouTube existente)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 TABELA: video_sources
+────────────────────────
+
+Coluna        | Tipo              | Descrição
+──────────────────────────────────────────────────────
+id            | UUID              | Identificador único
+video_id      | UUID (FK)         | Qual vídeo (videos.id)
+source_type   | VARCHAR(50)       | 'youtube'|'wistia'|'vturb'
+source_data   | JSONB             | Dados da plataforma
+is_primary    | BOOLEAN           | Qual usar como padrão
+created_at    | TIMESTAMPTZ       | Quando criada
+updated_at    | TIMESTAMPTZ       | Última mudança
+
+Constraint: UNIQUE(video_id, source_type)
+  → Máximo 1 source de cada tipo por vídeo
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💾 DADOS POR PLATAFORMA
+───────────────────────
+
+YOUTUBE
+  URL de entrada: https://www.youtube.com/watch?v=JvmXVeem2lI
+  source_data:
+  {
+    "video_id": "JvmXVeem2lI",
+    "url": "https://www.youtube.com/watch?v=JvmXVeem2lI",
+    "thumbnail": "https://img.youtube.com/vi/JvmXVeem2lI/hqdefault.jpg"
+  }
+
+WISTIA
+  Entrada: <script src="..."></script><wistia-player media-id="78docpnbgg">...
+  source_data:
+  {
+    "media_id": "78docpnbgg",
+    "embed_code": "...",
+    "thumbnail": "https://fast.wistia.com/embed/medias/78docpnbgg/swatch"
+  }
+
+VTURB
+  Entrada: <vturb-smartplayer id="vid-691cb6488e05537f6925540e">...
+  source_data:
+  {
+    "player_id": "vid-691cb6488e05537f6925540e",
+    "embed_code": "...",
+    "thumbnail": "..."
+  }
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔧 RPCs (Funções SQL)
+─────────────────────
+
+1. create_or_update_video_source(video_id, source_type, source_data, is_primary)
+   └─ Criar ou atualizar uma source
+   └─ Retorna: { id, source_type, is_primary, created_at }
+
+2. get_video_sources(video_id)
+   └─ Obter TODAS as sources de um vídeo
+   └─ Retorna: [{ id, source_type, source_data, is_primary, created_at }]
+
+3. get_primary_video_source(video_id)
+   └─ Obter APENAS a source primária
+   └─ Retorna: { id, source_type, source_data, created_at }
+
+4. delete_video_source(source_id)
+   └─ Deletar uma source específica
+   └─ Se é primária, promove outra automaticamente
+   └─ Retorna: { success, message }
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔒 SEGURANÇA (RLS)
+──────────────────
+
+SELECT (LER):
+  ✅ Qualquer um pode ler (público)
+
+INSERT/UPDATE/DELETE (MODIFICAR):
+  🔒 Apenas service_role (backend)
+
+Resultado:
+  ✅ Usuários normais: leem vídeos
+  🔒 Admin: edita via RPC no frontend (será criado depois)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✨ FLUXO COMPLETO (Futuro)
+──────────────────────────
+
+Admin edita vídeo:
+  1. Seleciona tipo: [YouTube] [Wistia] [Vturb]
+  2. Cola URL/código
+  3. Sistema detecta automaticamente qual plataforma
+  4. Preview em tempo real
+  5. Salva em video_sources
+
+Usuário assiste:
+  1. Clica no vídeo
+  2. Player universal detecta source_type
+  3. Renderiza correto (YouTube iframe | Wistia embed | Vturb embed)
+  4. Se falhar uma, fallback para outra
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 CHECKLIST
+────────────
+
+Fase 1 (SQL): ← VOCÊ ESTÁ AQUI
+  ☐ Executar migração no Supabase
+  ☐ Testar com script de teste
+  ☐ Validar dados migrados
+
+Fase 2 (React Components): ← PRÓXIMO
+  ☐ VideoSourceSelector (tabs)
+  ☐ VideoSourceInput (campo dinâmico)
+  ☐ VideoSourcePreview (pré-visualização)
+  ☐ VideoPlayer universal
+
+Fase 3 (Admin UI):
+  ☐ Atualizar GestaoVideos.tsx
+  ☐ CTRL+C / CTRL+V inteligente
+  ☐ Testes E2E
+
+Fase 4 (Frontend):
+  ☐ Atualizar Videos.tsx
+  ☐ Atualizar dashboard/Videos.tsx
+  ☐ Suporte a fallback
+
+═══════════════════════════════════════════════════════════════════════════════
+
+❓ PRÓXIMO PASSO
+────────────────
+
+Após executar SQL:
+  1. Avise quando a migração estiver completa
+  2. Vamos para Fase 2: Componentes React
+
+═══════════════════════════════════════════════════════════════════════════════

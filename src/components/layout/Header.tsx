@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { NavItem } from "../ui/nav-item";
 import {
@@ -7,25 +5,32 @@ import {
   Users,        // Educadores
   Layers,       // Planos
   HelpCircle,   // Dúvidas Frequentes
-  KeyRound,     // Ver Planos (CTA)
   LogIn         // Login (outline)
 } from "lucide-react";
-import { useAuth } from '../../hooks/useAuth';
 
 interface HeaderProps {
   onLoginClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
-  // controle visual do ativo (não altera a rota)
   const [active, setActive] = useState<string>("Benefícios");
-  const { user, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   const handleLoginClick = () => {
     if (onLoginClick) {
       onLoginClick();
     }
     setActive("Login");
+    setMobileMenuOpen(false);
+  };
+
+  const handlePlansClick = () => {
+    const plansSection = document.getElementById('planos');
+    if (plansSection) {
+      plansSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    setActive("Ver Planos");
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -35,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <img
-              src="/logohorizontal.png"
+              src="/logohorizontal.webp"
               alt="EdukaPrime"
               className="h-8 w-auto"
             />
@@ -76,51 +81,74 @@ export const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
             <NavItem
               href="#planos"
               label="Ver Planos"
-              icon={<KeyRound className="w-4 h-4 text-white" />}
+              icon={<Gift className="w-4 h-4 text-white" />}
               active={active === "Ver Planos"}
-              onClick={() => setActive("Ver Planos")}
+              onClick={handlePlansClick}
               className="bg-orange-500 text-white hover:bg-orange-600 shadow-lg"
             />
 
-            {/* Login/User */}
-            {user ? (
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <img 
-                    src={user.avatar || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=40&h=40&fit=crop'} 
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full"
-                  />
-                  <span className="text-sm text-ink">{user.name}</span>
-                </div>
-                <button 
-                  onClick={logout}
-                  className="border border-gray-300 text-gray-500 hover:text-gray-700 hover:border-gray-400 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-orange-300"
-                >
-                  Sair
-                </button>
-              </div>
-            ) : (
-              <NavItem
-                href="#login"
-                label="Login"
-                icon={<LogIn className="w-4 h-4 text-gray-500 hover:text-gray-700" />}
-                active={active === "Login"}
-                onClick={handleLoginClick}
-                className="border border-gray-300 text-gray-500 hover:text-gray-700 hover:border-gray-400"
-              />
-            )}
+            {/* Login Button */}
+            <NavItem
+              href="#login"
+              label="Login"
+              icon={<LogIn className="w-4 h-4 text-gray-500 hover:text-gray-700" />}
+              active={active === "Login"}
+              onClick={handleLoginClick}
+              className="border border-gray-300 text-gray-500 hover:text-gray-700 hover:border-gray-400"
+            />
           </nav>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button className="text-body hover:text-ink p-2">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+          {/* Mobile login button + menu button */}
+          <div className="md:hidden flex items-center gap-2">
+            {/* Botão de Login visível em mobile */}
+            <button
+              onClick={handleLoginClick}
+              className="flex items-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 hover:text-gray-900 hover:border-gray-400 rounded-lg transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              <span className="text-sm font-medium">Login</span>
+            </button>
+
+            {/* Botão hamburguer */}
+            <button
+              className="text-body hover:text-ink p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 bg-white/95 backdrop-blur-lg">
+            <div className="px-4 py-4 space-y-3">
+              <button
+                onClick={handleLoginClick}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <LogIn className="w-5 h-5 text-gray-500" />
+                <span className="font-medium">Login</span>
+              </button>
+
+              <button
+                onClick={handlePlansClick}
+                className="w-full flex items-center space-x-3 px-4 py-3 bg-orange-500 text-white hover:bg-orange-600 rounded-lg transition-colors shadow-lg"
+              >
+                <Gift className="w-5 h-5 text-white" />
+                <span className="font-medium">Ver Planos</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

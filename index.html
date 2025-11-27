@@ -2,9 +2,245 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EdukaPrime Learning Platform</title>
+    <meta name="facebook-domain-verification" content="x3iffn8qpy0g7s4hqzeeuohkpir5z0" />
+    <title>EdukaPrime - Materiais Educativos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
+
+    <!-- Global Styles - Prevent Horizontal Scroll -->
+    <style>
+      html, body, #root {
+        overflow-x: hidden;
+        width: 100%;
+      }
+    </style>
+
+    <!-- Silenciar pixel.js console spam GLOBALMENTE + Suppress network errors -->
+    <script>
+      (function() {
+        // Salvar console original
+        var _log = console.log;
+        var _warn = console.warn;
+        var _info = console.info;
+
+        // Lista de palavras-chave do pixel.js para silenciar
+        var pixelKeywords = ['buttons', 'button clicked', 'check can', 'scrolling', 'pixel'];
+
+        // Interceptar console.log
+        console.log = function() {
+          var args = Array.from(arguments);
+          var message = args.join(' ');
+
+          // Se contém keywords de pixel.js, silenciar
+          if (pixelKeywords.some(keyword => message.includes(keyword))) {
+            return;
+          }
+
+          // Caso contrário, mostrar normalmente
+          _log.apply(console, arguments);
+        };
+
+        // Interceptar console.warn
+        console.warn = function() {
+          var args = Array.from(arguments);
+          var message = args.join(' ');
+
+          if (pixelKeywords.some(keyword => message.includes(keyword))) {
+            return;
+          }
+
+          _warn.apply(console, arguments);
+        };
+
+        // Interceptar console.info
+        console.info = function() {
+          var args = Array.from(arguments);
+          var message = args.join(' ');
+
+          if (pixelKeywords.some(keyword => message.includes(keyword))) {
+            return;
+          }
+
+          _info.apply(console, arguments);
+        };
+
+        // Interceptar console.error para silenciar erros de network
+        var _error = console.error;
+        console.error = function() {
+          var args = Array.from(arguments);
+          var message = args.join(' ');
+
+          // Silenciar erros de network (Failed to load resource, etc)
+          if (message.includes('Failed to load') || message.includes('ERR_CONNECTION') || message.includes('localhost:3001')) {
+            return;
+          }
+
+          _error.apply(console, arguments);
+        };
+      })();
+    </script>
+
+    <!-- Override Global de Fetch + XHR - Silenciar URLs problemáticas -->
+    <script>
+      (function() {
+        var silentUrls = ['localhost:3001', 'tracking/v1/events', 'user_gamification'];
+
+        // Override Fetch API
+        var originalFetch = window.fetch;
+        window.fetch = function() {
+          var url = arguments[0];
+
+          // Se URL é de um serviço silencioso, criar response vazia
+          if (silentUrls.some(keyword => url && url.toString && url.toString().includes(keyword))) {
+            return Promise.resolve(new Response('', {status: 204}));
+          }
+
+          // Caso contrário, fazer fetch normal com tratamento de erro
+          return originalFetch.apply(window, arguments).catch(function(error) {
+            if (silentUrls.some(keyword => error.toString().includes(keyword))) {
+              return Promise.resolve(new Response('', {status: 204}));
+            }
+            throw error;
+          });
+        };
+
+        // Override XMLHttpRequest
+        var originalOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function(method, url) {
+          // Se é URL silenciosa, marcar para silenciar erros
+          if (silentUrls.some(keyword => url && url.toString && url.toString().includes(keyword))) {
+            this._isSilentUrl = true;
+          }
+          return originalOpen.apply(this, arguments);
+        };
+
+        var originalSend = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.send = function() {
+          if (this._isSilentUrl) {
+            // Silenciar eventos de erro
+            this.onerror = function() {};
+            this.onload = function() {};
+          }
+          return originalSend.apply(this, arguments);
+        };
+      })();
+    </script>
+
+    <!-- Utmify Pixel - Carregamento otimizado com fallback -->
+    <script>
+      window.pixelId = "68f824a9079b2e60c11eb824";
+
+      // Catch global de erros de promise não tratadas (especialmente do pixel.js)
+      window.addEventListener('unhandledrejection', function(event) {
+        // Silenciar erros de fetch do pixel.js
+        if (event.reason && (event.reason.message === 'Failed to fetch' || event.reason.toString().includes('ERR_'))) {
+          event.preventDefault();
+          return;
+        }
+      });
+
+      // Sistema robusto para carregar Utmify com retry
+      (function() {
+        var pixelLoaded = false;
+        var utmsLoaded = false;
+        var maxRetries = 5;
+        var retryCount = 0;
+
+        function isAdminRoute() {
+          return window.location.pathname.includes('/admin');
+        }
+
+        // Silenciar console ANTES de carregar pixel.js
+        var originalLog = console.log;
+        var originalWarn = console.warn;
+        var originalInfo = console.info;
+        var originalError = console.error;
+
+        function loadPixelScript() {
+          if (pixelLoaded || isAdminRoute()) return;
+          var script = document.createElement("script");
+          script.src = "https://cdn.utmify.com.br/scripts/pixel/pixel.js";
+          script.async = true;
+          script.defer = true;
+
+          // Silenciar console enquanto pixel.js está ativo
+          console.log = function() {};
+          console.warn = function() {};
+          console.info = function() {};
+
+          script.onload = function() {
+            pixelLoaded = true;
+          };
+          script.onerror = function() {
+            if (retryCount < maxRetries) {
+              retryCount++;
+              setTimeout(loadPixelScript, 1000);
+            }
+          };
+          document.head.appendChild(script);
+        }
+
+        function loadUtmsScript() {
+          if (utmsLoaded || isAdminRoute()) return;
+          var script = document.createElement("script");
+          script.src = "https://cdn.utmify.com.br/scripts/utms/latest.js";
+          script.async = true;
+          script.defer = true;
+          script.setAttribute("data-utmify-prevent-subids", "");
+
+          // Silenciar console enquanto utms está ativo
+          console.log = function() {};
+          console.warn = function() {};
+          console.info = function() {};
+
+          script.onload = function() {
+            utmsLoaded = true;
+          };
+          script.onerror = function() {
+            if (retryCount < maxRetries) {
+              retryCount++;
+              setTimeout(loadUtmsScript, 1000);
+            }
+          };
+          document.head.appendChild(script);
+        }
+
+        // Carregar scripts assim que o DOM estiver pronto (não esperar page load completo)
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function() {
+            loadPixelScript();
+            setTimeout(loadUtmsScript, 100);
+          });
+        } else {
+          // DOM já está pronto
+          loadPixelScript();
+          setTimeout(loadUtmsScript, 100);
+        }
+      })();
+    </script>
+
+    <!-- TikTok Pixel Code Start -->
+    <script>
+!function (w, d, t) {
+  w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+
+
+  ttq.load('D0L9CABC77U8DMAGNO6G');
+  ttq.page();
+}(window, document, 'ttq');
+    </script>
+    <!-- TikTok Pixel Code End -->
+
+    <!-- VTurb SmartPlayer Optimization Scripts -->
+    <script>!function(i,n){i._plt=i._plt||(n&&n.timeOrigin?n.timeOrigin+n.now():Date.now())}(window,performance);</script>
+    <script src="https://scripts.converteai.net/lib/js/smartplayer-wc/v4/smartplayer.js" async defer></script>
+    <link rel="dns-prefetch" href="https://cdn.converteai.net">
+    <link rel="dns-prefetch" href="https://scripts.converteai.net">
   </head>
   <body>
     <div id="root"></div>

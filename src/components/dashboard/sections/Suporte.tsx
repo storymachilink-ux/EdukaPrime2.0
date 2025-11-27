@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { MessageCircle, HelpCircle, Mail, Phone, ChevronDown, ChevronRight } from 'lucide-react';
-import { Card } from '../../ui/Card';
-import { Button } from '../../ui/Button';
+import { HelpCircle, Mail, Phone, ChevronDown, ChevronRight } from 'lucide-react';
+import { Card } from '../../ui/card';
+import { Button } from '../../ui/button';
 
 export const Suporte: React.FC = () => {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
@@ -9,45 +9,34 @@ export const Suporte: React.FC = () => {
   const faqData = [
     {
       question: 'Como posso cancelar minha assinatura?',
-      answer: 'Você pode cancelar sua assinatura a qualquer momento acessando as Configurações > Plano e Faturamento. O cancelamento será efetivo ao final do período atual.'
+      answer: 'Entre em contato via WhatsApp que cancelamos sua assinatura sem perguntas.'
     },
     {
       question: 'Posso usar as atividades impressas comercialmente?',
-      answer: 'Sim! Com sua assinatura ativa, você pode imprimir e usar todas as atividades em suas aulas e práticas pedagógicas. Não é permitida a revenda dos materiais.'
+      answer: 'Pode usar comercialmente, desde que não as venda online.'
     },
     {
       question: 'Como baixo os materiais em formato WORD?',
-      answer: 'Os formatos WORD estão disponíveis nos planos Evoluir e Tudo em Um. Após acessar uma atividade, clique no botão "Baixar" e selecione o formato desejado.'
+      answer: 'Os materiais são compatíveis com Word — basta abrir no Word (ou usar um conversor de formato). Se precisar de ajuda para personalizar use o Suporte VIP'
     },
     {
       question: 'Existe limite de downloads?',
-      answer: 'Não! Com sua assinatura ativa, você pode fazer downloads ilimitados de todos os materiais disponíveis em seu plano.'
-    },
-    {
-      question: 'Como funciona o período de teste?',
-      answer: 'Oferecemos 7 dias de teste gratuito para novos usuários. Durante esse período, você terá acesso completo ao plano escolhido.'
+      answer: 'Não há limite para os usuários baixarem as atividades'
     }
   ];
 
   const contactOptions = [
     {
-      icon: MessageCircle,
-      title: 'Chat Online',
-      description: 'Converse conosco em tempo real',
-      action: 'Iniciar Chat',
-      available: true
-    },
-    {
       icon: Mail,
       title: 'E-mail',
-      description: 'contato@edukaprime.com',
+      description: 'storymachilink@gmail.com',
       action: 'Enviar E-mail',
       available: true
     },
     {
       icon: Phone,
       title: 'Telefone',
-      description: '(11) 3000-0000',
+      description: '(67) 99309-1209',
       action: 'Ligar Agora',
       available: true
     }
@@ -58,109 +47,112 @@ export const Suporte: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-[#1F1F1F] dark:text-[#F5F5F5] mb-2">
+    <section className="mx-auto max-w-6xl px-4 md:px-6 py-6 md:py-10">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-[#033258] mb-2">
           Suporte
         </h1>
-        <p className="text-[#5C5C5C] dark:text-[#A3A3A3]">
+        <p className="text-sm md:text-base text-[#624044] mb-4 md:mb-6">
           Estamos aqui para ajudar você a aproveitar ao máximo o EdukaPrime
         </p>
-      </div>
-
-      {/* Quick Support */}
-      <Card className="bg-[#F7D7D2] dark:bg-[#2A1F1D] border-0">
-        <div className="flex items-center gap-4">
-          <img
-            src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&fit=crop"
-            alt="Professora Maria"
-            className="w-16 h-16 rounded-full object-cover"
-          />
-          <div className="flex-1">
-            <h3 className="font-bold text-[#1F1F1F] dark:text-[#F5F5F5] mb-1">
-              Falar com Professora Maria
-            </h3>
-            <p className="text-sm text-[#5C5C5C] dark:text-[#A3A3A3] mb-3">
-              Nossa especialista pedagógica está disponível para ajudar você
-            </p>
-            <Button variant="primary" size="sm">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Iniciar Conversa
-            </Button>
+        <div className="text-center mb-4 md:mb-6">
+          <div className="inline-block animate-[float_4s_ease-in-out_infinite] max-w-sm md:max-w-none">
+            <img
+              src="/suporte.webp"
+              alt="Suporte EdukaPrime"
+              className="w-full h-auto"
+            />
           </div>
         </div>
-      </Card>
+        <style jsx>{`
+          @keyframes float {
+            0%, 100% {
+              transform: translateY(0px);
+            }
+            50% {
+              transform: translateY(-8px);
+            }
+          }
+        `}</style>
+      </div>
+
 
       {/* Contact Options */}
-      <div>
-        <h2 className="text-xl font-bold text-[#1F1F1F] dark:text-[#F5F5F5] mb-4">
-          Entre em Contato
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="mb-6 md:mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {contactOptions.map((option, index) => (
-            <Card key={index} hover>
+            <div key={index} className="bg-white border border-[#FFE3A0] rounded-xl md:rounded-2xl shadow-sm p-4 md:p-6 hover:shadow-md transition-all duration-200 touch-manipulation">
               <div className="text-center space-y-3">
-                <div className="w-12 h-12 mx-auto bg-[#F2E9E6] dark:bg-[#252119] rounded-full flex items-center justify-center">
-                  <option.icon className="w-6 h-6 text-[#111111] dark:text-[#F5F5F5]" strokeWidth={2} />
+                <div className="w-10 h-10 md:w-12 md:h-12 mx-auto bg-amber-100 rounded-full flex items-center justify-center">
+                  <option.icon className="w-5 h-5 md:w-6 md:h-6 text-amber-700" strokeWidth={2} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#1F1F1F] dark:text-[#F5F5F5] mb-1">
+                  <h3 className="font-bold text-[#033258] mb-1 text-sm md:text-base">
                     {option.title}
                   </h3>
-                  <p className="text-sm text-[#5C5C5C] dark:text-[#A3A3A3] mb-3">
+                  <p className="text-sm text-[#624044] mb-3">
                     {option.description}
                   </p>
-                  <Button 
-                    variant={option.available ? "primary" : "secondary"} 
-                    size="sm" 
-                    className="w-full"
-                    disabled={!option.available}
+                  <button
+                    className={`w-full px-4 py-2 md:py-3 rounded-xl transition-colors duration-200 font-medium text-sm md:text-base touch-manipulation ${
+                      index === 0
+                        ? 'bg-white border border-[#FFE3A0] text-[#033258] hover:bg-[#FFF3D6]'
+                        : 'bg-[#F59E0B] text-white hover:bg-[#D97706]'
+                    }`}
                   >
                     {option.action}
-                  </Button>
+                  </button>
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </div>
 
       {/* FAQ */}
       <div>
-        <div className="flex items-center gap-3 mb-6">
-          <HelpCircle className="w-6 h-6 text-[#111111] dark:text-white" strokeWidth={2} />
-          <h2 className="text-xl font-bold text-[#1F1F1F] dark:text-[#F5F5F5]">
+        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+          <HelpCircle className="w-5 h-5 md:w-6 md:h-6 text-[#033258]" strokeWidth={2} />
+          <h2 className="text-lg md:text-xl font-bold text-[#033258]">
             Perguntas Frequentes
           </h2>
         </div>
-        
-        <div className="space-y-3">
+
+        <div className="space-y-3 md:space-y-4">
           {faqData.map((faq, index) => (
-            <Card key={index} className="cursor-pointer transition-all duration-200">
+            <div key={index} className="bg-white border border-[#FFE3A0] rounded-xl md:rounded-2xl shadow-sm p-4 md:p-6 cursor-pointer transition-all duration-200 hover:shadow-md touch-manipulation">
               <div onClick={() => toggleFaq(index)}>
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-[#1F1F1F] dark:text-[#F5F5F5] pr-4">
+                  <h3 className="font-medium text-[#033258] pr-4 text-sm md:text-base leading-tight">
                     {faq.question}
                   </h3>
                   {expandedFaq === index ? (
-                    <ChevronDown className="w-5 h-5 text-[#5C5C5C] dark:text-[#A3A3A3] flex-shrink-0" />
+                    <ChevronDown className="w-4 h-4 md:w-5 md:h-5 text-[#476178] flex-shrink-0" />
                   ) : (
-                    <ChevronRight className="w-5 h-5 text-[#5C5C5C] dark:text-[#A3A3A3] flex-shrink-0" />
+                    <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-[#476178] flex-shrink-0" />
                   )}
                 </div>
-                
+
                 {expandedFaq === index && (
-                  <div className="mt-3 pt-3 border-t border-[#E9DCD7] dark:border-[#2A2A2A]">
-                    <p className="text-[#5C5C5C] dark:text-[#A3A3A3] leading-relaxed">
-                      {faq.answer}
+                  <div className="mt-3 pt-3 border-t border-[#FFE3A0]">
+                    <p className="text-[#624044] leading-relaxed text-sm md:text-base">
+                      {faq.answer.includes('Suporte VIP') ? (
+                        <>
+                          {faq.answer.split('Suporte VIP')[0]}
+                          <strong className="font-bold text-[#033258]">Suporte VIP</strong>
+                          {faq.answer.split('Suporte VIP')[1]}
+                        </>
+                      ) : (
+                        faq.answer
+                      )}
                     </p>
                   </div>
                 )}
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };

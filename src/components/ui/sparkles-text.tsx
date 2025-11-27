@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, ReactElement, useEffect, useState } from "react";
+import { CSSProperties, ReactElement, useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 
 import { cn } from "../../lib/utils";
@@ -68,6 +68,27 @@ const SparklesText: React.FC<SparklesTextProps> = ({
   ...props
 }) => {
   const [sparkles, setSparkles] = useState<Sparkle[]>([]);
+  const [isVisible, setIsVisible] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Intersection Observer para pausar animações fora da viewport
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setIsVisible(entry.isIntersecting);
+        });
+      },
+      {
+        threshold: 0.1, // Ativar quando 10% estiver visível
+      }
+    );
+
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const generateStar = (): Sparkle => {
@@ -92,20 +113,36 @@ const SparklesText: React.FC<SparklesTextProps> = ({
           if (star.lifespan <= 0) {
             return generateStar();
           } else {
-            return { ...star, lifespan: star.lifespan - 0.1 };
+            return { ...star, lifespan: star.lifespan - 0.5 };
           }
         }),
       );
     };
 
     initializeStars();
-    const interval = setInterval(updateStars, 100);
 
-    return () => clearInterval(interval);
-  }, [colors.first, colors.second, sparklesCount]);
+    // Otimizado: usar requestAnimationFrame em vez de setInterval
+    let animationFrameId: number;
+    let lastUpdate = Date.now();
+
+    const animate = () => {
+      const now = Date.now();
+      // Só atualizar se estiver visível na viewport
+      if (isVisible && now - lastUpdate >= 500) {
+        updateStars();
+        lastUpdate = now;
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [colors.first, colors.second, sparklesCount, isVisible]);
 
   return (
     <div
+      ref={containerRef}
       className={cn("text-6xl font-bold", className)}
       {...props}
       style={

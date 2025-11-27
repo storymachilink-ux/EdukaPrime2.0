@@ -12,6 +12,35 @@ const PRODUCT_PLAN_MAPPING = {
   'eOGqcq0IbQnJUpjKRpsG': { level: 3, name: 'Plano Prime' }
 };
 
+// Função: Registrar webhook em webhook_logs e retornar ID
+async function logWebhook(payload, customer, payment, product, eventType) {
+  const { data, error } = await supabase
+    .from('webhook_logs')
+    .insert({
+      event_type: eventType,
+      status: 'pending',
+      customer_email: customer?.email,
+      customer_name: customer?.name || null,
+      customer_phone: customer?.phone || null,
+      product_id: product?.id,
+      plan_name: PRODUCT_PLAN_MAPPING[product?.id]?.name || 'Desconhecido',
+      payment_id: payment?.id,
+      payment_method: payment?.method,
+      amount: payment?.amount || 0,
+      raw_payload: payload,
+      platform: 'GGCHECKOUT'
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('⚠️ Erro ao registrar webhook em webhook_logs (não crítico):', error);
+    return null;
+  }
+
+  return data?.id || null;
+}
+
 exports.handler = async (event, context) => {
   // Headers CORS
   const headers = {
@@ -105,6 +134,15 @@ exports.handler = async (event, context) => {
 
     console.log(`✅ Plano identificado: ${planInfo.name} (level ${planInfo.level})`);
 
+    // 🔴 PASSO 1: Registrar webhook em webhook_logs ANTES de processar
+    console.log('📝 Registrando webhook em webhook_logs...');
+    const webhookId = await logWebhook(payload, customer, payment, product, eventType);
+    if (webhookId) {
+      console.log(`✅ Webhook registrado com ID: ${webhookId}`);
+    } else {
+      console.warn('⚠️ Webhook não foi registrado, continuando sem webhook_id');
+    }
+
     // Calcular data de expiração (PIX = 30 dias, Cartão = 90 dias)
     const isPix = payment.method.includes('pix');
     const daysToAdd = isPix ? 30 : 90;
@@ -122,58 +160,101 @@ exports.handler = async (event, context) => {
       .maybeSingle();
 
     let userId;
+    let planoPendente = false;
 
     if (!existingUser) {
-      console.log('👤 Usuário não encontrado. Criando conta automaticamente...');
+      console.log('👤 Usuário não encontrado. Inserindo em ⏳ Planos Pendentes...');
 
-      // Gerar senha aleatória
-      const randomPassword = Math.random().toString(36).slice(-12) + 'Aa1!';
+      // 🔴 PASSO 2: Inserir em pending_plans ao invés de criar usuário
+      // Buscar plan_id usando product_id do GGCheckout
+      const { data: planData, error: planError } = await supabase
+        .from('plans_v2')
+        .select('id, name, display_name')
+        .eq('ggcheckout_product_id', productId)
+        .single();
 
-      // Criar usuário no Auth
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email: customer.email.toLowerCase(),
-        password: randomPassword,
-        email_confirm: true,
-        user_metadata: {
-          name: customer.name || customer.email.split('@')[0]
-        }
-      });
-
-      if (authError) {
-        console.error('❌ Erro ao criar usuário no Auth:', authError);
-        throw new Error(`Erro ao criar usuário: ${authError.message}`);
+      if (planError || !planData) {
+        console.error('❌ Plano não encontrado para product_id:', productId);
+        throw new Error(`Plano não encontrado: ${productId}`);
       }
 
-      userId = authUser.user.id;
-      console.log('✅ Usuário criado no Auth:', userId);
+      const planId = planData.id;
+      const planName = planData.display_name || planData.name || 'Plano Desconhecido';
 
-      // Criar perfil na tabela users
-      const { error: insertError } = await supabase
-        .from('users')
+      // Inserir em pending_plans
+      const { error: pendingError } = await supabase
+        .from('pending_plans')
         .insert({
-          id: userId,
           email: customer.email.toLowerCase(),
-          plano_ativo: planInfo.level,
-          data_ativacao: new Date().toISOString()
+          plan_id: planId,
+          status: 'pending',
+          payment_id: payment.id,
+          product_id_gateway: productId,
+          payment_method: payment.method,
+          amount_paid: payment.amount || 0,
+          platform: 'GGCHECKOUT',
+          webhook_id: webhookId,
+          product_name: planName,
+          product_code: productId,
+          start_date: new Date().toISOString(),
+          end_date: expirationDate.toISOString()
         });
 
-      if (insertError) {
-        console.error('❌ Erro ao criar perfil:', insertError);
-        throw new Error(`Erro ao criar perfil: ${insertError.message}`);
+      if (pendingError) {
+        console.error('❌ Erro ao inserir em pending_plans:', pendingError);
+        throw new Error(`Erro ao criar plano pendente: ${pendingError.message}`);
       }
 
-      console.log('✅ Perfil criado com sucesso');
+      planoPendente = true;
+      console.log(`✅ Plano pendente criado para ${customer.email}`);
 
     } else {
       userId = existingUser.id;
       console.log('✅ Usuário encontrado:', userId);
 
-      // Atualizar plano do usuário
+      // Buscar plan_id usando product_id do GGCheckout
+      const { data: planData, error: planError } = await supabase
+        .from('plans_v2')
+        .select('id')
+        .eq('ggcheckout_product_id', productId)
+        .single();
+
+      if (planError || !planData) {
+        console.error('❌ Plano não encontrado para product_id:', productId);
+        throw new Error(`Plano não encontrado: ${productId}`);
+      }
+
+      // Criar/atualizar subscription em user_subscriptions
+      const { error: subscriptionError } = await supabase
+        .from('user_subscriptions')
+        .insert({
+          user_id: userId,
+          plan_id: planData.id,
+          status: 'active',
+          start_date: new Date().toISOString(),
+          end_date: expirationDate.toISOString(),
+          payment_id: payment.id,
+          product_id_gateway: productId,
+          payment_method: payment.method,
+          amount_paid: payment.amount || 0,
+          webhook_id: webhookId
+        })
+        .on('conflict', {
+          ignoreDuplicates: true
+        });
+
+      if (subscriptionError) {
+        console.error('❌ Erro ao criar subscription:', subscriptionError);
+        throw new Error(`Erro ao criar subscription: ${subscriptionError.message}`);
+      }
+
+      // Atualizar usuário com plano ativo
       const { error: updateError } = await supabase
         .from('users')
         .update({
-          plano_ativo: planInfo.level,
-          data_ativacao: new Date().toISOString()
+          active_plan_id: planData.id,
+          plano_ativo: planData.id,
+          updated_at: new Date().toISOString()
         })
         .eq('id', userId);
 
@@ -182,34 +263,11 @@ exports.handler = async (event, context) => {
         throw new Error(`Erro ao atualizar: ${updateError.message}`);
       }
 
-      console.log('✅ Plano atualizado com sucesso');
+      console.log('✅ Subscription ativada com sucesso');
     }
 
-    // Registrar transação para contabilização na área admin
-    const { error: transactionError } = await supabase
-      .from('transactions')
-      .insert({
-        user_id: userId,
-        payment_id: payment.id,
-        product_id: productId,
-        plan_level: planInfo.level,
-        plan_name: planInfo.name,
-        amount: payment.amount || 0,
-        payment_method: payment.method,
-        payment_status: payment.status || 'pending',
-        event_type: eventType,
-        customer_email: customer.email,
-        customer_name: customer.name || null,
-        customer_phone: customer.phone || null,
-        raw_payload: payload,
-        processed_at: new Date().toISOString()
-      });
-
-    if (transactionError) {
-      console.error('⚠️ Erro ao registrar transação (não crítico):', transactionError);
-    } else {
-      console.log('✅ Transação registrada para contabilização');
-    }
+    // ✅ Transação já foi registrada em webhook_logs no início do processamento
+    // Não precisa registrar em 'transactions' também
 
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('✅ WEBHOOK PROCESSADO COM SUCESSO!');
@@ -218,7 +276,7 @@ exports.handler = async (event, context) => {
     console.log(`📦 Plano: ${planInfo.name} (${planInfo.level})`);
     console.log(`💰 Valor: R$ ${payment.amount}`);
     console.log(`💳 Método: ${isPix ? 'PIX' : 'Cartão'}`);
-    console.log(`👤 Ação: ${existingUser ? 'Atualizado' : 'Criado'}`);
+    console.log(`👤 Ação: ${planoPendente ? '⏳ Plano Pendente' : '✅ Subscription Ativada'}`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
     return {

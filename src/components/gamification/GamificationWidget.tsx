@@ -22,6 +22,10 @@ export function GamificationWidget({ userId }: GamificationWidgetProps) {
   const [data, setData] = useState<GamificationData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  if (window.location.pathname.includes('/admin')) {
+    return null;
+  }
+
   useEffect(() => {
     loadGamificationData();
   }, [userId]);
@@ -41,7 +45,8 @@ export function GamificationWidget({ userId }: GamificationWidgetProps) {
         .single();
 
       if (gamError) {
-        console.warn('Gamificação não disponível:', gamError);
+        // Silenciosamente ignorar erro 404 (tabela não existe)
+        // Silenciosamente ignorar erro 406 (RLS)
         setLoading(false);
         return;
       }

@@ -1,7 +1,7 @@
-import React from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Card, CardContent } from '../ui/Card';
+import { Card, CardContent } from '../ui/card';
 import { Marquee } from '../ui/3d-testimonails';
 
 export const Educadores: React.FC = () => {
@@ -10,35 +10,35 @@ export const Educadores: React.FC = () => {
       name: 'Mariana Souza',
       username: '@mariana_souza',
       role: 'Mãe — Filho de 7 anos',
-      img: '/mariana.png',
+      img: '/mariana.webp',
       body: 'Amei a plataforma da EdukaPrime, tudo é muito fácil de achar! Ensinei meu filho a ler com as atividades de fonética, em 2 semaninhas pegou super rápido.',
     },
     {
       name: 'Carla Mendes',
       username: '@carlamendes_prof',
       role: 'Professora — Ensino Fundamental I (2º ano)',
-      img: '/carla.png',
+      img: '/carla.webp',
       body: 'Com a minha turma do 2º ano, eu precisava de materiais variados para leitura e escrita. A EdukaPrime oferece tudo pronto, alinhado à BNCC e fácil de adaptar, pensa na minha tranquilidade no final de semana 😂',
     },
     {
       name: 'Renata Oliveira',
       username: '@renata_oliveira',
       role: 'Mãe — Filha de 10 anos',
-      img: '/renata.png',
+      img: '/renata.webp',
       body: 'Minha menina sempre teve dificuldade em interpretação de texto. Com os materiais da EdukaPrime ela melhorou muito, e eu economizo tempo porque já vem tudo pronto para imprimir, ameii! ❤️',
     },
     {
       name: 'Luciana Pereira',
       username: '@luciana_pereira5',
       role: 'Professora — Ensino Fundamental II (5º ano)',
-      img: '/luciana.png',
+      img: '/luciana.webp',
       body: 'Dou aula para o 5º ano e utilizo bastante os conteúdos de gramática e ortografia. A possibilidade de baixar em Word e personalizar facilita demais meu trabalho.',
     },
   ];
 
   function TestimonialCard({ name, username, role, body, img }: (typeof testimonials)[number]) {
     const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('');
-    
+
     return (
       <Card className="w-64 bg-white border-[#E6EEF7]">
         <CardContent>
@@ -56,6 +56,100 @@ export const Educadores: React.FC = () => {
           <blockquote className="mt-3 text-sm text-[#0F2741]">{body}</blockquote>
         </CardContent>
       </Card>
+    );
+  }
+
+  function ReviewCarousel() {
+    const reviews = ['/img/rev01.webp', '/img/rev02.webp', '/img/rev03.webp', '/img/rev04.webp'];
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    const prev = () => setCurrentIndex((i) => (i === 0 ? reviews.length - 1 : i - 1));
+    const next = () => setCurrentIndex((i) => (i === reviews.length - 1 ? 0 : i + 1));
+
+    return (
+      <div className="max-w-4xl mx-auto mb-12">
+        <div className="relative">
+          {/* Moldura com traçado */}
+          <div className="relative p-5 border-4 border-dashed border-[#FFE3A0] rounded-2xl bg-white shadow-lg">
+            {/* Contorno interno 20px com traçado */}
+            <div className="border-2 border-dashed border-[#9A6A00] rounded-xl p-5">
+              <img
+                src={reviews[currentIndex]}
+                alt={`Review ${currentIndex + 1}`}
+                className="w-full h-auto object-contain rounded-lg"
+              />
+            </div>
+          </div>
+
+          {/* Botões de navegação */}
+          <button
+            onClick={prev}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-2 border-[#FFE3A0] rounded-full p-2 shadow-md transition-all"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="w-5 h-5 text-[#9A6A00]" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-2 border-[#FFE3A0] rounded-full p-2 shadow-md transition-all"
+            aria-label="Próximo"
+          >
+            <ChevronRight className="w-5 h-5 text-[#9A6A00]" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  function MockCarousel() {
+    const mocks = ['/img/mockbonus.webp', '/img/mocksistema.webp', '/img/mockjogos.webp', '/img/mockmatematica.webp'];
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    const prev = () => setCurrentIndex((i) => (i === 0 ? mocks.length - 1 : i - 1));
+    const next = () => setCurrentIndex((i) => (i === mocks.length - 1 ? 0 : i + 1));
+
+    return (
+      <div className="max-w-4xl mx-auto my-8">
+        <div className="relative">
+          <div className="relative bg-white rounded-2xl shadow-xl p-4 border-2 border-[#E6EEF7]">
+            <img
+              src={mocks[currentIndex]}
+              alt={`Mock ${currentIndex + 1}`}
+              className="w-full h-auto object-contain rounded-lg"
+            />
+          </div>
+
+          {/* Botões de navegação */}
+          <button
+            onClick={prev}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white border-2 border-[#0F2741] rounded-full p-2 shadow-lg transition-all hover:scale-110"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="w-5 h-5 text-[#0F2741]" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white border-2 border-[#0F2741] rounded-full p-2 shadow-lg transition-all hover:scale-110"
+            aria-label="Próximo"
+          >
+            <ChevronRight className="w-5 h-5 text-[#0F2741]" />
+          </button>
+
+          {/* Indicadores de página */}
+          <div className="flex justify-center gap-2 mt-4">
+            {mocks.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className={`h-2 rounded-full transition-all ${
+                  idx === currentIndex ? 'w-8 bg-[#0F2741]' : 'w-2 bg-gray-300'
+                }`}
+                aria-label={`Ir para imagem ${idx + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -79,8 +173,11 @@ export const Educadores: React.FC = () => {
             </div>
           </div>
         </div>
-        
-        <div className="border border-transparent rounded-lg relative flex h-96 w-full max-w-[800px] mx-auto flex-row items-center justify-center overflow-hidden gap-1.5 [perspective:300px]">
+
+        {/* Carrossel de Reviews */}
+        <ReviewCarousel />
+
+        <div className="border border-transparent rounded-lg relative flex h-96 w-full max-w-[800px] mx-auto flex-row items-center justify-center overflow-hidden gap-1.5 [perspective:300px] mt-12">
           <div
             className="flex flex-row items-center gap-4"
             style={{
@@ -119,7 +216,23 @@ export const Educadores: React.FC = () => {
             <div className="pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-background"></div>
           </div>
         </div>
-        
+
+        {/* Botão acima de Benefícios */}
+        <div className="text-center my-12">
+          <button
+            onClick={() => {
+              const primeCard = document.getElementById('plano-prime');
+              if (primeCard) {
+                primeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+          >
+            <span>Liberar meu acesso agora</span>
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+
         {/* Benefícios Section */}
         <div className="mb-0 bg-[#f1fcff] rounded-t-[24px] p-8">
           <div className="text-center mb-12">
@@ -140,32 +253,97 @@ export const Educadores: React.FC = () => {
             </div>
           </div>
           
-          {/* Carrossel de Benefícios com Navegação */}
+          {/* Cards de Benefícios */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-              {[
-                { title: 'Poupe Tempo', description: 'Tenha mais horas livres para você e sua família.' },
-                { title: 'Aulas Sem Estresse', description: 'Chegue preparada com materiais de qualidade.' },
-                { title: 'Personalização', description: 'Baixe em Word e edite do seu jeito.' },
-                { title: 'Tranquilidade', description: 'Saiba que terá sempre atividades novas para aplicar.' },
-                { title: 'Confiança', description: 'Materiais testados e aprovados por mães e professores.' },
-              ].map((beneficio, index) => (
-                <div key={index}>
-                  <div className="relative group transition-all duration-300 rotate-[-1deg]">
-                    <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
-                    <div className="relative p-6 text-center">
-                      <div className="flex items-center gap-3 mb-3 justify-center">
-                        <CheckCircle2 className="w-6 h-6 text-[#033258]" />
-                        <h3 className="text-lg font-semibold text-[#033258]">
-                          {beneficio.title}
-                        </h3>
-                      </div>
-                      <p className="text-sm text-[#033258] leading-relaxed">
-                        {beneficio.description}
-                      </p>
-                    </div>
+            {/* Card 1 - Encontre tudo em um só lugar */}
+            <div className="relative group transition-all duration-300 rotate-[-1deg]">
+              <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
+              <div className="relative p-6">
+                <div className="flex items-start gap-4 mb-3">
+                  <img src="/be01.webp" alt="Encontre tudo em um só lugar" className="w-12 h-12 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#033258] mb-2">
+                      Encontre tudo em um só lugar
+                    </h3>
+                    <p className="text-sm text-[#033258] leading-relaxed">
+                      Chega de abrir mil abas.
+                    </p>
                   </div>
                 </div>
-              ))}
+              </div>
+            </div>
+
+            {/* Card 2 - Ganhe tempo no seu dia */}
+            <div className="relative group transition-all duration-300 rotate-[1deg]">
+              <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
+              <div className="relative p-6">
+                <div className="flex items-start gap-4 mb-3">
+                  <img src="/be02.webp" alt="Ganhe tempo no seu dia" className="w-12 h-12 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#033258] mb-2">
+                      Ganhe tempo no seu dia
+                    </h3>
+                    <p className="text-sm text-[#033258] leading-relaxed">
+                      Use o que realmente importa, ensinar, não preparar.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3 - Acelere o aprendizado */}
+            <div className="relative group transition-all duration-300 rotate-[-2deg]">
+              <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
+              <div className="relative p-6">
+                <div className="flex items-start gap-4 mb-3">
+                  <img src="/be03.webp" alt="Acelere o aprendizado" className="w-12 h-12 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#033258] mb-2">
+                      Acelere o aprendizado
+                    </h3>
+                    <p className="text-sm text-[#033258] leading-relaxed">
+                      Materiais testados que prendem a atenção e trazem resultado rápido.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4 - Tranquilidade */}
+            <div className="relative group transition-all duration-300 rotate-[1.5deg]">
+              <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
+              <div className="relative p-6">
+                <div className="flex items-start gap-4 mb-3">
+                  <img src="/be04.webp" alt="Tranquilidade" className="w-12 h-12 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#033258] mb-2">
+                      Tranquilidade
+                    </h3>
+                    <p className="text-sm text-[#033258] leading-relaxed">
+                      Tenha sempre novas atividades atualizadas, sem estresse.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5 - Confiança */}
+            <div className="relative group transition-all duration-300 rotate-[-0.5deg]">
+              <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
+              <div className="relative p-6">
+                <div className="flex items-start gap-4 mb-3">
+                  <img src="/be05.webp" alt="Confiança" className="w-12 h-12 flex-shrink-0" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#033258] mb-2">
+                      Confiança
+                    </h3>
+                    <p className="text-sm text-[#033258] leading-relaxed">
+                      Usado e aprovado por mais de 7 mil mães e professores.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -173,14 +351,27 @@ export const Educadores: React.FC = () => {
         <div className="bg-[#f1fcff] rounded-b-[24px] p-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-ink mb-6">
-              Você já se pegou passando horas criando atividades do zero?
+              Você também sente que o tempo nunca é suficiente pra preparar tudo do jeito que gostaria?
             </h2>
-            <div className="mb-8">
-              <img src="/gifeduka.gif" alt="GIF EdukaPrime" className="mx-auto mb-4" />
+            <div className="text-lg text-body max-w-3xl mx-auto mb-8 space-y-4">
+              <p>
+                Entre cuidar da casa, do trabalho e dos filhos, quase não sobra energia pra planejar aulas ou buscar materiais de qualidade.
+              </p>
+              <p>
+                E quando finalmente encontra alguma coisa, parece tudo desorganizado, solto, difícil de aplicar.
+              </p>
+              <p>
+                <strong>Esse cansaço é real e, aos poucos, acaba tirando o prazer de ensinar</strong> e o foco das crianças em aprender.
+              </p>
+
+              {/* Carrossel de Mocks */}
+              <MockCarousel />
+
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-300 rounded-lg text-xl font-semibold text-[#033258]">
+                <ArrowRight className="w-5 h-5" />
+                Com a EdukaPrime, isso muda.
+              </div>
             </div>
-            <p className="text-lg text-body max-w-3xl mx-auto mb-8">
-              Tentando achar materiais soltos na internet e, no fim, se sentindo esgotada? A EdukaPrime resolve isso para você:
-            </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -189,7 +380,7 @@ export const Educadores: React.FC = () => {
               <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
               <div className="relative p-6 text-center">
                 <div className="mb-4">
-                  <img src="/atividadesprontas.png" alt="Atividades Prontas" className="w-12 h-12 mx-auto" />
+                  <img src="/atividadesprontas.webp" alt="Atividades Prontas" className="w-12 h-12 mx-auto" />
                 </div>
                 <h3 className="text-2xl font-semibold text-[#033258] mb-3">
                   Atividades Prontas
@@ -206,7 +397,7 @@ export const Educadores: React.FC = () => {
               <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
               <div className="relative p-6 text-center">
                 <div className="mb-4">
-                  <img src="/bncc.png" alt="BNCC" className="w-12 h-12 mx-auto" />
+                  <img src="/bncc.webp" alt="BNCC" className="w-12 h-12 mx-auto" />
                 </div>
                 <h3 className="text-2xl font-semibold text-[#033258] mb-3">
                   100% Alinhado à BNCC 2023
@@ -222,7 +413,7 @@ export const Educadores: React.FC = () => {
               <div className="absolute inset-0 bg-[#fbe9be] border-2 border-[#ffe3a0] rounded-lg shadow-[4px_4px_0px_0px] shadow-[#033258] transition-all duration-300 group-hover:shadow-[8px_8px_0px_0px] group-hover:translate-x-[-4px] group-hover:translate-y-[-4px]" />
               <div className="relative p-6 text-center">
                 <div className="mb-4">
-                  <img src="/planejamento.png" alt="Planejamento" className="w-12 h-12 mx-auto" />
+                  <img src="/planejamento.webp" alt="Planejamento" className="w-12 h-12 mx-auto" />
                 </div>
                 <h3 className="text-2xl font-semibold text-[#033258] mb-3">
                   Planejamento Facilitado

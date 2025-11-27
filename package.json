@@ -1,7 +1,7 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "edukaprime-landing",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,15 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@radix-ui/react-avatar": "^1.1.10",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@supabase/supabase-js": "^2.57.4",
-    "class-variance-authority": "^0.7.1",
+    "@ark-ui/react": "^5.27.1",
+    "@supabase/supabase-js": "^2.58.0",
+    "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.22",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.9.3",
+    "recharts": "^3.2.1",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
@@ -32,7 +33,9 @@
     "eslint-plugin-react-refresh": "^0.4.11",
     "globals": "^15.9.0",
     "postcss": "^8.4.35",
+    "supabase": "^2.47.2",
     "tailwindcss": "^3.4.1",
+    "terser": "^5.44.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
     "vite": "^5.4.2"

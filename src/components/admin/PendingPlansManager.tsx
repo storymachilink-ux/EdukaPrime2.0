@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Card } from '../ui/card'
 import { Button } from '../ui/button'
-import { CheckCircle, Clock, XCircle, RefreshCw, Edit2, Check, X } from 'lucide-react'
+import { CheckCircle, Clock, XCircle, RefreshCw, Edit2, Check, X, ExternalLink } from 'lucide-react'
 
 interface PendingPlan {
   id: string
@@ -16,7 +16,15 @@ interface PendingPlan {
   created_at: string
   platform: string
   product_id_gateway?: string
+  product_name?: string
+  product_code?: string
+  webhook_id?: string
   raw_payload?: any
+  webhook_logs?: {
+    product_id?: string
+    product_title?: string
+    raw_payload?: any
+  }
 }
 
 interface ProductInfo {
@@ -55,10 +63,10 @@ export const PendingPlansManager: React.FC = () => {
   const loadPendingPlans = async () => {
     try {
       setLoading(true)
-      // ✨ ATUALIZADO: Incluir product_id e product_title do webhook_logs
+      // ✨ ATUALIZADO: Incluir product_name, product_code, webhook_id de pending_plans
       const { data, error } = await supabase
         .from('pending_plans')
-        .select('*, webhook_logs(product_id, product_title, raw_payload)')
+        .select('*, webhook_logs(id, product_id, product_title, raw_payload)')
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -337,6 +345,7 @@ export const PendingPlansManager: React.FC = () => {
                   <th className="px-4 py-3 text-left font-semibold">Plataforma</th>
                   <th className="px-4 py-3 text-left font-semibold">Valor</th>
                   <th className="px-4 py-3 text-left font-semibold">Criado em</th>
+                  <th className="px-4 py-3 text-left font-semibold">Webhook</th>
                   <th className="px-4 py-3 text-left font-semibold">Ações</th>
                 </tr>
               </thead>
@@ -400,14 +409,14 @@ export const PendingPlansManager: React.FC = () => {
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      {plan.webhook_logs?.product_id ? (
+                      {plan.product_code ? (
                         <div className="space-y-1">
                           <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold border border-purple-300">
-                            📦 {plan.webhook_logs.product_id}
+                            📦 {plan.product_code}
                           </span>
-                          {plan.webhook_logs.product_title && (
+                          {plan.product_name && (
                             <div className="text-xs text-gray-600 truncate max-w-xs">
-                              {plan.webhook_logs.product_title}
+                              {plan.product_name}
                             </div>
                           )}
                         </div>
@@ -427,6 +436,20 @@ export const PendingPlansManager: React.FC = () => {
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-600">
                       {new Date(plan.created_at).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="px-4 py-3">
+                      {plan.webhook_id ? (
+                        <a
+                          href={`#webhook-${plan.webhook_id}`}
+                          title={`Ver webhook ${plan.webhook_id}`}
+                          className="text-blue-600 hover:text-blue-900 inline-flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          <span className="text-xs truncate max-w-xs">{plan.webhook_id.substring(0, 8)}...</span>
+                        </a>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       {plan.status === 'pending' && (

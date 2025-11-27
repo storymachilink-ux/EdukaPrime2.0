@@ -1,0 +1,32 @@
+===============================================
+GUIA RÁPIDO: Ativar Sistema de Gamificação
+===============================================
+
+3 PASSOS SIMPLES (15 minutos)
+
+PASSO 1: Abrir Supabase SQL Editor
+=====================================
+URL: https://lkhfbhvamnqgcqlrriaw.supabase.co/project/lkhfbhvamnqgcqlrriaw/sql/new
+
+PASSO 2: Executar PASSO_1_GAMIFICACAO.sql
+==========================================
+1. Abra o arquivo: PASSO_1_GAMIFICACAO.sql
+2. Selecione TODO o conteúdo (Ctrl+A)
+3. Copie (Ctrl+C)
+4. Cole no Supabase SQL Editor (Ctrl+V)
+5. Clique em RUN (ou Ctrl+Enter)
+6. Aguarde até ver: "Success. No rows returned"
+
+PASSO 3: Executar PASSO_2_GAMIFICACAO.sql
+==========================================
+1. Abra o arquivo: PASSO_2_GAMIFICACAO.sql
+2. Selecione TODO o conteúdo (Ctrl+A)
+3. Copie (Ctrl+C)
+4. Limpe o editor do Supabase
+5. Cole o novo código (Ctrl+V)
+6. Clique em RUN (ou Ctrl+Enter)
+7. Aguarde até ver: "Success. No rows returned"
+
+DEPOIS:
+=======
+Me avise que completou os PASSOS 2 e 3, que faço o resto!

@@ -1,0 +1,202 @@
+================================================================================
+  REFATORAÇÃO DO SISTEMA DE PLANOS - QUICK START
+================================================================================
+
+SITUAÇÃO ATUAL:
+  ❌ Sistema tá quebrado
+  ❌ Duas abordagens misturadas
+  ❌ Permissões não funcionam
+  ❌ Admin panel confuso
+
+SOLUÇÃO:
+  ✅ Novo sistema simples
+  ✅ Funciona perfeito
+  ✅ Admin fácil
+  ✅ Suporta vitalício + mensal
+
+================================================================================
+ARQUIVOS CRIADOS:
+================================================================================
+
+1. REFACTOR_PLANS_SYSTEM_V2.sql
+   → SQL COMPLETO pra refazer o banco
+   → Execute no Supabase SQL Editor
+
+2. PASSOS_SUPABASE.md
+   → Instruções passo-a-passo (9 passos)
+   → Com verificações
+
+3. ARQUITETURA_NOVA_PLANOS.md
+   → Documentação visual completa
+   → Fluxos de compra
+   → Diagramas
+
+4. INSTRUCOES_CLEANUP_BANCO.md
+   → O que EXCLUIR do banco
+   → O que REESCREVER no frontend
+   → Checklist
+
+5. README_REFACTOR_PLANOS.md
+   → Overview completo
+   → Checklist de implementação
+
+================================================================================
+LEIA NESTA ORDEM:
+================================================================================
+
+1️⃣  README_REFACTOR_PLANOS.md (5 min)
+    └─ Entender o problema e a solução
+
+2️⃣  PASSOS_SUPABASE.md (30 min)
+    └─ Executar no Supabase (copy & paste)
+
+3️⃣  ARQUITETURA_NOVA_PLANOS.md (15 min)
+    └─ Entender como funciona
+
+4️⃣  INSTRUCOES_CLEANUP_BANCO.md (10 min)
+    └─ Próximos passos no frontend
+
+================================================================================
+RESUMO DA SOLUÇÃO:
+================================================================================
+
+ANTES: plans (JSONB granular)           DEPOIS: plans_v2 (simples)
+       ├─ atividades: [item1, item2]           ├─ id: 0-4
+       ├─ videos: [...]                        ├─ name: GRATUITO, ESSENCIAL...
+       └─ ...                                  └─ is_active: true/false
+
+ANTES: plans (confuso)                  DEPOIS: plan_features (claro)
+                                               ├─ (plan_id=1, atividades): true
+                                               ├─ (plan_id=1, videos): false
+                                               └─ ...
+
+ANTES: users.plano_id VARCHAR          DEPOIS: users.active_plan_id INT
+                                              users.has_lifetime_access BOOL
+
+ANTES: (nada)                          DEPOIS: user_subscriptions
+                                              ├─ Rastreia todas as compras
+                                              ├─ Suporta múltiplas subscriptions
+                                              └─ Histórico completo
+
+================================================================================
+DADOS QUE VAI TER:
+================================================================================
+
+5 PLANOS:
+  0 → GRATUITO      (R$ 0,00 / mensal)
+  1 → ESSENCIAL     (R$ 17,99 / mensal)
+  2 → EVOLUIR       (R$ 27,99 / mensal)
+  3 → PRIME         (R$ 49,99 / mensal)
+  4 → VITALÍCIO     (R$ 197,99 / único)
+
+6 FEATURES (cada plano libera ou não):
+  - atividades
+  - videos
+  - bonus
+  - papercrafts
+  - comunidade
+  - suporte_vip
+
+ACESSO POR PLANO:
+  GRATUITO:    ❌ Nada
+  ESSENCIAL:   ✅ Atividades
+  EVOLUIR:     ✅ Atividades, Vídeos, Bônus
+  PRIME:       ✅ Tudo + Comunidade + Suporte VIP
+  VITALÍCIO:   ✅ Tudo para sempre
+
+================================================================================
+FLUXO RÁPIDO:
+================================================================================
+
+USER NOVO:
+  signup() → active_plan_id=0 (GRATUITO) → sem acesso
+
+USER COMPRA ESSENCIAL (PIX):
+  click "Contratar" → GGCheckout → paga → webhook →
+  activate_user_subscription(user, plan=1) → active_plan_id=1 → acesso atividades ✅
+
+USER UPGRADE PARA PRIME:
+  click "Upgrade" → webhook → desativa plan=1 → cria plan=3 → acesso tudo ✅
+
+USER COMPRA VITALÍCIO:
+  click "Vitalício" → webhook → has_lifetime_access=true → acesso permanente ✅
+
+================================================================================
+VERIFICAÇÃO DE ACESSO:
+================================================================================
+
+SQL (direto):
+  SELECT user_has_feature_access('user-id', 'videos')
+  → true/false
+
+TypeScript (no código):
+  const hasAccess = await planService.hasAccess(userId, 'videos');
+  if (!hasAccess) showUpgradeModal();
+
+Query SQL:
+  SELECT pf.is_enabled
+  FROM plan_features pf
+  WHERE pf.plan_id = (SELECT active_plan_id FROM users WHERE id = ?)
+  AND pf.feature_name = 'videos'
+
+================================================================================
+PRÓXIMOS PASSOS:
+================================================================================
+
+1. Executar REFACTOR_PLANS_SYSTEM_V2.sql no Supabase
+   └─ Cria tabelas: plans_v2, plan_features, user_subscriptions
+
+2. Reescrever src/lib/planService.ts
+   └─ Usar novas tabelas
+
+3. Atualizar src/contexts/AuthContext.tsx
+   └─ Carregar active_plan_id + has_lifetime_access
+
+4. Criar src/pages/admin/AdminPlanosManager.tsx
+   └─ MUITO mais simples (lista + editar)
+
+5. Deletar src/pages/admin/GestaoPlanos.tsx
+   └─ Era complicado demais
+
+6. Atualizar webhook handler
+   └─ Chamar activate_user_subscription()
+
+================================================================================
+TESTE RÁPIDO:
+================================================================================
+
+No Supabase SQL Editor:
+
+1. SELECT COUNT(*) FROM plans_v2;
+   → Deve retornar 5
+
+2. SELECT COUNT(*) FROM plan_features;
+   → Deve retornar 30 (5 planos × 6 features)
+
+3. SELECT * FROM user_current_access LIMIT 1;
+   → Deve retornar dados do usuário
+
+4. SELECT user_has_feature_access('user-uuid', 'videos');
+   → Deve retornar true/false
+
+================================================================================
+TEMPO ESTIMADO:
+================================================================================
+
+Banco (Supabase):        45 minutos
+Frontend (reescrever):   3-4 horas
+Testes:                  2 horas
+Total:                   ~5 horas
+
+================================================================================
+DÚVIDAS?
+================================================================================
+
+Leia:
+  • ARQUITETURA_NOVA_PLANOS.md    → Entender a arquitetura
+  • INSTRUCOES_CLEANUP_BANCO.md    → O que excluir/reescrever
+  • PASSOS_SUPABASE.md             → Passo-a-passo SQL
+
+================================================================================
+
+Vamo nessa! 🚀

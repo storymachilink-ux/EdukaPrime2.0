@@ -1,0 +1,90 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                                                                           ║
+║          🔗 GUIA RÁPIDO: COMO ATUALIZAR LINKS DE CHECKOUT 🔗             ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+⚠️  ATENÇÃO: Sempre que mudar os links de checkout, atualize APENAS 2 arquivos!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📍 ARQUIVO 1: Área Interna (Dashboard)
+
+   📁 Caminho: src/constants/checkout.ts
+
+   🎯 Afeta:
+      • Página de Planos (/planos)
+      • Modal de Upgrade
+      • Botões "Fazer Upgrade"
+      • Botões "Assinar Plano"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📍 ARQUIVO 2: Landing Page (Site Externo)
+
+   📁 Caminho: landing-page/src/constants/checkout.ts
+
+   🎯 Afeta:
+      • Seção de Planos da Landing
+      • Botões "Assinar Agora"
+      • CTAs de conversão
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔄 PASSO A PASSO PARA ATUALIZAR:
+
+1️⃣  Abra o arquivo: src/constants/checkout.ts
+
+2️⃣  Localize esta seção:
+
+    export const CHECKOUT_LINKS = {
+      essencial: 'https://www.ggcheckout.com/checkout/v2/...',
+      evoluir: 'https://www.ggcheckout.com/checkout/v2/...',
+      prime: 'https://www.ggcheckout.com/checkout/v2/...',
+    } as const;
+
+3️⃣  Substitua os links pelos novos
+
+4️⃣  Salve o arquivo
+
+5️⃣  Repita os passos 1-4 para: landing-page/src/constants/checkout.ts
+
+6️⃣  Pronto! ✅ Todos os botões atualizados automaticamente!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 LINKS ATUAIS (REFERÊNCIA):
+
+┌─────────────┬──────────────────────────────────────────────────────────────┐
+│ PLANO       │ LINK                                                         │
+├─────────────┼──────────────────────────────────────────────────────────────┤
+│ Essencial   │ https://www.ggcheckout.com/checkout/v2/8S2J21JhLk3xIhbiRJiq │
+│ Evoluir     │ https://www.ggcheckout.com/checkout/v2/XIGp0MeoklnQxhGEnJIe │
+│ Prime       │ https://www.ggcheckout.com/checkout/v2/jgSa1tc6CfVFYBaku7JV │
+└─────────────┴──────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ CHECKLIST DE ATUALIZAÇÃO:
+
+   ☐ Atualizei src/constants/checkout.ts
+   ☐ Atualizei landing-page/src/constants/checkout.ts
+   ☐ Testei o Plano Essencial
+   ☐ Testei o Plano Evoluir
+   ☐ Testei o Plano Prime
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ NÃO FAÇA:
+
+   • NÃO coloque links diretamente no código (hard-coded)
+   • NÃO edite os links em cada arquivo individual
+   • NÃO esqueça de atualizar os 2 arquivos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📅 Última atualização: 02/10/2025
+🔗 Sistema: GGCheckout
+📄 Documentação completa: LINKS_CHECKOUT_README.md
+
+╚═══════════════════════════════════════════════════════════════════════════╝

@@ -1,0 +1,862 @@
+═══════════════════════════════════════════════════════════════════════════
+📚 GUIA COMPLETO: SETUP DE SAAS COM SUPABASE + GOOGLE AUTH + WEBHOOK
+═══════════════════════════════════════════════════════════════════════════
+
+Este guia documenta TODAS as etapas necessárias para criar um SAAS completo
+com autenticação Google, webhook de pagamento e painel admin.
+
+Criado com base no projeto EdukaPrime - Todas as correções já estão inclusas.
+
+═══════════════════════════════════════════════════════════════════════════
+🎯 VISÃO GERAL DO SISTEMA
+═══════════════════════════════════════════════════════════════════════════
+
+TECNOLOGIAS USADAS:
+- Frontend: React + TypeScript + Vite + Tailwind CSS
+- Backend: Supabase (PostgreSQL + Edge Functions)
+- Auth: Supabase Auth + Google OAuth
+- Pagamentos: GGCheckout (ou similar) com Webhook
+- Deploy: Netlify
+- CLI: Supabase CLI (npm)
+
+FUNCIONALIDADES:
+✅ Login com Email/Senha
+✅ Login com Google OAuth
+✅ Sistema de Planos (Gratuito, Essencial, Evoluir, Prime)
+✅ Webhook de pagamento (ativação automática de planos)
+✅ Painel Admin completo
+✅ Sistema de permissões por plano
+✅ Logs de webhook para auditoria
+
+═══════════════════════════════════════════════════════════════════════════
+📋 PARTE 1: CONFIGURAÇÃO INICIAL DO PROJETO
+═══════════════════════════════════════════════════════════════════════════
+
+ETAPA 1.1: CRIAR PROJETO REACT
+──────────────────────────────────────────────────────────────────────────
+
+1. Abra o terminal e execute:
+
+   npm create vite@latest meu-saas -- --template react-ts
+   cd meu-saas
+   npm install
+
+2. Instale as dependências necessárias:
+
+   npm install @supabase/supabase-js react-router-dom lucide-react
+   npm install -D tailwindcss postcss autoprefixer
+   npx tailwindcss init -p
+
+3. Configure o Tailwind (tailwind.config.js):
+
+   export default {
+     content: [
+       "./index.html",
+       "./src/**/*.{js,ts,jsx,tsx}",
+     ],
+     theme: {
+       extend: {},
+     },
+     plugins: [],
+   }
+
+4. Adicione ao src/index.css:
+
+   @tailwind base;
+   @tailwind components;
+   @tailwind utilities;
+
+═══════════════════════════════════════════════════════════════════════════
+📋 PARTE 2: CONFIGURAÇÃO DO SUPABASE
+═══════════════════════════════════════════════════════════════════════════
+
+ETAPA 2.1: CRIAR PROJETO NO SUPABASE
+──────────────────────────────────────────────────────────────────────────
+
+1. Acesse: https://app.supabase.com
+2. Clique em "New Project"
+3. Preencha:
+   - Name: Meu SAAS
+   - Database Password: (crie uma senha FORTE e GUARDE)
+   - Region: South America (São Paulo)
+4. Clique "Create new project"
+5. Aguarde 2-3 minutos para provisionar
+
+ETAPA 2.2: COPIAR CREDENCIAIS
+──────────────────────────────────────────────────────────────────────────
+
+1. No Supabase Dashboard → Settings → API
+2. Copie:
+   - Project URL (ex: https://abcdefgh.supabase.co)
+   - anon public key (string grande começando com eyJ...)
+3. Copie também o Project Reference ID (em Settings → General)
+
+GUARDE ESSAS 3 INFORMAÇÕES - VOCÊ VAI USAR VÁRIAS VEZES!
+
+ETAPA 2.3: CRIAR ARQUIVO .env
+──────────────────────────────────────────────────────────────────────────
+
+1. Na raiz do projeto, crie o arquivo .env
+2. Adicione (substitua pelos seus valores):
+
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-anon-key-aqui
+
+3. Adicione .env ao .gitignore (se ainda não estiver):
+
+.env
+.env.local
+
+═══════════════════════════════════════════════════════════════════════════
+📋 PARTE 3: CRIAR BANCO DE DADOS
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️ IMPORTANTE: Execute os SQLs ANTES de criar o código que usa o banco!
+
+ETAPA 3.1: CRIAR TABELA DE USUÁRIOS
+──────────────────────────────────────────────────────────────────────────
+
+1. Supabase Dashboard → SQL Editor → New Query
+2. Cole e execute:
+
+-- Tabela de usuários (perfil estendido)
+CREATE TABLE users (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT UNIQUE NOT NULL,
+  nome TEXT,
+  cpf TEXT,
+  telefone TEXT,
+  plano_ativo INTEGER DEFAULT 0,
+  data_expiracao_plano TIMESTAMP WITH TIME ZONE,
+  is_admin BOOLEAN DEFAULT false,
+  acesso_atividades BOOLEAN,
+  acesso_videos BOOLEAN,
+  acesso_bonus BOOLEAN,
+  acesso_suporte_vip BOOLEAN,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- RLS
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- Políticas
+CREATE POLICY "Usuários podem ver próprio perfil"
+  ON users FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "Usuários podem atualizar próprio perfil"
+  ON users FOR UPDATE
+  USING (auth.uid() = id);
+
+CREATE POLICY "Admins podem ver tudo"
+  ON users FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.is_admin = true
+    )
+  );
+
+-- Índices
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_plano ON users(plano_ativo);
+
+ETAPA 3.2: CRIAR TABELA DE WEBHOOK LOGS
+──────────────────────────────────────────────────────────────────────────
+
+1. Supabase Dashboard → SQL Editor → New Query
+2. Cole e execute:
+
+-- Tabela de logs de webhooks
+CREATE TABLE webhook_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+  event_type TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  message TEXT,
+
+  customer_email TEXT NOT NULL,
+  customer_name TEXT,
+  customer_document TEXT,
+  customer_phone TEXT,
+
+  product_id TEXT NOT NULL,
+  plan_activated INTEGER,
+  plan_name TEXT,
+  expiration_date TIMESTAMP WITH TIME ZONE,
+
+  payment_id TEXT,
+  payment_method TEXT NOT NULL,
+  amount NUMERIC NOT NULL,
+
+  raw_payload JSONB NOT NULL
+);
+
+-- Índices
+CREATE INDEX idx_webhook_logs_email ON webhook_logs(customer_email);
+CREATE INDEX idx_webhook_logs_created ON webhook_logs(created_at DESC);
+CREATE INDEX idx_webhook_logs_status ON webhook_logs(status);
+CREATE INDEX idx_webhook_logs_event ON webhook_logs(event_type);
+CREATE INDEX idx_webhook_logs_product ON webhook_logs(product_id);
+
+-- RLS
+ALTER TABLE webhook_logs ENABLE ROW LEVEL SECURITY;
+
+-- Apenas admins podem ver
+CREATE POLICY "Apenas admins podem ver logs de webhooks"
+  ON webhook_logs FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.is_admin = true
+    )
+  );
+
+-- Ninguém pode inserir/editar/deletar manualmente
+CREATE POLICY "Ninguém pode inserir manualmente"
+  ON webhook_logs FOR INSERT
+  WITH CHECK (false);
+
+CREATE POLICY "Ninguém pode atualizar logs"
+  ON webhook_logs FOR UPDATE
+  USING (false);
+
+CREATE POLICY "Ninguém pode deletar logs"
+  ON webhook_logs FOR DELETE
+  USING (false);
+
+ETAPA 3.3: VERIFICAR SE FUNCIONOU
+──────────────────────────────────────────────────────────────────────────
+
+Execute para testar:
+
+SELECT * FROM users LIMIT 1;
+SELECT * FROM webhook_logs LIMIT 1;
+
+Se não der erro = Tabelas criadas com sucesso! ✅
+
+═══════════════════════════════════════════════════════════════════════════
+📋 PARTE 4: CONFIGURAR GOOGLE OAUTH
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️ IMPORTANTE: Faça TUDO nesta ordem para evitar erros!
+
+ETAPA 4.1: CRIAR PROJETO NO GOOGLE CLOUD
+──────────────────────────────────────────────────────────────────────────
+
+1. Acesse: https://console.cloud.google.com
+2. Faça login com sua conta Google
+3. Clique em "Select a project" (topo) → "NEW PROJECT"
+4. Nome do projeto: Meu SAAS
+5. Clique "CREATE"
+6. Aguarde 10-20 segundos
+
+ETAPA 4.2: CONFIGURAR OAUTH CONSENT SCREEN
+──────────────────────────────────────────────────────────────────────────
+
+1. Menu lateral → "APIs & Services" → "OAuth consent screen"
+2. Escolha "External" → "CREATE"
+3. Preencha:
+   - App name: Meu SAAS
+   - User support email: seu-email@gmail.com
+   - Developer contact: seu-email@gmail.com
+4. "SAVE AND CONTINUE"
+5. Em "Scopes": "SAVE AND CONTINUE" (não precisa adicionar nada)
+6. Em "Test users": "SAVE AND CONTINUE"
+7. "BACK TO DASHBOARD"
+
+ETAPA 4.3: CRIAR OAUTH CLIENT ID
+──────────────────────────────────────────────────────────────────────────
+
+1. Menu lateral → "APIs & Services" → "Credentials"
+2. "+ CREATE CREDENTIALS" → "OAuth client ID"
+3. Application type: "Web application"
+4. Name: "Meu SAAS Web Client"
+
+5. ⚠️ ATENÇÃO: Authorized JavaScript origins:
+   Adicione AMBAS as URLs (clique "+ ADD URI" para cada uma):
+
+   https://seu-dominio.com.br
+   https://seu-projeto-ref.supabase.co
+
+   (Substitua pelo SEU domínio e SEU project ref do Supabase!)
+
+6. ⚠️ ATENÇÃO: Authorized redirect URIs:
+   Adicione APENAS esta URL:
+
+   https://seu-projeto-ref.supabase.co/auth/v1/callback
+
+   (Substitua pelo SEU project ref do Supabase!)
+
+7. Clique "CREATE"
+
+8. ⚠️ COPIE E GUARDE:
+   - Client ID (algo como: 123456-abcdef.apps.googleusercontent.com)
+   - Client Secret (algo como: GOCSPX-abc123...)
+
+ETAPA 4.4: CONFIGURAR NO SUPABASE
+──────────────────────────────────────────────────────────────────────────
+
+1. Supabase Dashboard → Authentication → Providers
+2. Procure "Google" e clique para expandir
+3. Habilite o toggle "Enable Sign in with Google"
+4. Cole:
+   - Client ID (copiado na etapa anterior)
+   - Client Secret (copiado na etapa anterior)
+5. Clique "Save"
+
+ETAPA 4.5: CONFIGURAR SITE URL NO SUPABASE
+──────────────────────────────────────────────────────────────────────────
+
+⚠️ SUPER IMPORTANTE: SEM BARRA NO FINAL!
+
+1. Supabase Dashboard → Authentication → URL Configuration
+2. Configure:
+
+   Site URL: https://seu-dominio.com.br
+   (⚠️ SEM barra "/" no final!)
+
+   Redirect URLs: https://seu-dominio.com.br/**
+   (⚠️ Apenas essa linha com **)
+
+3. Clique "Save"
+
+═══════════════════════════════════════════════════════════════════════════
+📋 PARTE 5: CRIAR CÓDIGO DO FRONTEND
+═══════════════════════════════════════════════════════════════════════════
+
+ETAPA 5.1: CRIAR CLIENTE SUPABASE
+──────────────────────────────────────────────────────────────────────────
+
+Crie: src/lib/supabase.ts
+
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+ETAPA 5.2: CRIAR AUTH CONTEXT
+──────────────────────────────────────────────────────────────────────────
+
+Crie: src/contexts/AuthContext.tsx
+
+(Código completo está no projeto - use o arquivo AuthContext.tsx como referência)
+
+PONTOS IMPORTANTES:
+- signInWithGoogle deve usar: redirectTo: window.location.origin (SEM /dashboard)
+- createUserProfile deve buscar/criar perfil automaticamente
+- onAuthStateChange deve processar SIGNED_IN corretamente
+
+ETAPA 5.3: CRIAR PÁGINA DE LOGIN
+──────────────────────────────────────────────────────────────────────────
+
+Crie: src/pages/Login.tsx
+
+PONTOS IMPORTANTES:
+- Adicionar useEffect para redirecionar se já estiver logado
+- Importar { user } do useAuth()
+- Botão Google deve ter design bonito com logo do Google
+
+ETAPA 5.4: ATUALIZAR MAIN.TSX PARA PROCESSAR OAUTH
+──────────────────────────────────────────────────────────────────────────
+
+⚠️ CRÍTICO: Este código processa o callback OAuth antes do React renderizar!
+
+Edite: src/main.tsx
+
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { supabase } from './lib/supabase';
+import App from './App';
+import './index.css';
+
+// Processar callback OAuth ANTES de renderizar o app
+const handleOAuthCallback = async () => {
+  console.log('🌐 URL atual:', window.location.href);
+  console.log('🌐 Hash:', window.location.hash);
+
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+  const accessToken = hashParams.get('access_token');
+
+  if (accessToken) {
+    console.log('🔑 Token OAuth detectado, processando...');
+    await new Promise(resolve => setTimeout(resolve, 100));
+  } else {
+    console.log('⚠️ Nenhum token OAuth no hash');
+  }
+};
+
+handleOAuthCallback().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <BrowserRouter>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </BrowserRouter>
+    </StrictMode>
+  );
+});
+
+ETAPA 5.5: ATUALIZAR APP.TSX
+──────────────────────────────────────────────────────────────────────────
+
+No componente LandingPage, adicione redirect para usuários logados:
+
+function LandingPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Redirecionar para dashboard se usuário já estiver logado
+  React.useEffect(() => {
+    if (user) {
+      console.log('✅ Usuário logado detectado, redirecionando...');
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  // ... resto do código
+}
+
+═══════════════════════════════════════════════════════════════════════════
+📋 PARTE 6: CONFIGURAR WEBHOOK DE PAGAMENTO
+═══════════════════════════════════════════════════════════════════════════
+
+ETAPA 6.1: INSTALAR SUPABASE CLI
+──────────────────────────────────────────────────────────────────────────
+
+1. No terminal do projeto, execute:
+
+   npm install supabase --save-dev
+
+2. Inicialize o projeto:
+
+   npx supabase init
+
+3. Faça login:
+
+   npx supabase login
+
+   (Vai abrir o navegador para autenticar)
+
+4. Linkar ao projeto:
+
+   npx supabase link --project-ref SEU_PROJECT_REF
+
+   (Substitua SEU_PROJECT_REF pelo ID do Supabase copiado na Parte 2)
+
+   Vai pedir a senha do banco - digite a que você criou.
+
+ETAPA 6.2: ATUALIZAR CONFIG.TOML
+──────────────────────────────────────────────────────────────────────────
+
+⚠️ IMPORTANTE: Configure ANTES de fazer deploy!
+
+Edite: supabase/config.toml
+
+Adicione estas seções (ajuste conforme necessário):
+
+[auth]
+enabled = true
+site_url = "https://seu-dominio.com.br"
+additional_redirect_urls = ["http://localhost:5173", "https://seu-dominio.com.br/**"]
+jwt_expiry = 3600
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[auth.external.google]
+enabled = true
+client_id = "seu-client-id.apps.googleusercontent.com"
+secret = "GOCSPX-seu-client-secret"
+
+[functions.checkout-webhook]
+verify_jwt = false
+
+⚠️ ATENÇÃO: verify_jwt = false é NECESSÁRIO para webhooks públicos!
+
+ETAPA 6.3: CRIAR EDGE FUNCTION DO WEBHOOK
+──────────────────────────────────────────────────────────────────────────
+
+Crie: supabase/functions/checkout-webhook/index.ts
+
+(Código completo está no projeto - use o arquivo como referência)
+
+PONTOS IMPORTANTES:
+- Mapear IDs de produtos do checkout para números de planos
+- PIX = 30 dias, Cartão = 90 dias
+- Criar usuário automaticamente se não existir
+- Registrar tudo em webhook_logs
+- Retornar status 200 sempre (mesmo para eventos ignorados)
+
+ETAPA 6.4: FAZER DEPLOY DA EDGE FUNCTION
+──────────────────────────────────────────────────────────────────────────
+
+1. Execute:
+
+   npx supabase functions deploy checkout-webhook
+
+2. ⚠️ COPIE A URL que aparecer no final:
+
+   https://seu-projeto-ref.supabase.co/functions/v1/checkout-webhook
+
+   GUARDE ESSA URL - você vai usar no próximo passo!
+
+3. Teste se está funcionando:
+
+   https://seu-projeto-ref.supabase.co/functions/v1/checkout-webhook
+
+   Deve retornar erro 405 (Method not allowed) = está funcionando!
+
+ETAPA 6.5: CONFIGURAR WEBHOOK NO GGCHECKOUT (OU SEU GATEWAY)
+──────────────────────────────────────────────────────────────────────────
+
+1. Acesse o painel do seu gateway de pagamento
+2. Vá em Webhooks ou Integrações
+3. Clique em Adicionar Webhook
+4. Configure:
+
+   URL: https://seu-projeto-ref.supabase.co/functions/v1/checkout-webhook
+
+   Eventos:
+   ✅ pix.paid
+   ✅ card.paid
+   ⬜ Desmarque todos os outros
+
+5. Salve
+
+6. Teste enviando um webhook de teste (se disponível)
+
+ETAPA 6.6: VERIFICAR SE FUNCIONOU
+──────────────────────────────────────────────────────────────────────────
+
+1. Supabase Dashboard → SQL Editor
+2. Execute:
+
+   SELECT * FROM webhook_logs ORDER BY created_at DESC LIMIT 10;
+
+3. Deve aparecer os webhooks recebidos!
+
+═══════════════════════════════════════════════════════════════════════════
+📋 PARTE 7: DEPLOY NO NETLIFY
+═══════════════════════════════════════════════════════════════════════════
+
+ETAPA 7.1: PREPARAR PROJETO PARA BUILD
+──────────────────────────────────────────────────────────────────────────
+
+1. Confirme que o .env está correto (Parte 2, Etapa 2.3)
+2. Delete a pasta dist (se existir)
+3. Execute:
+
+   npm run build
+
+4. Verifique se a pasta dist foi criada
+
+ETAPA 7.2: CRIAR CONTA E SITE NO NETLIFY
+──────────────────────────────────────────────────────────────────────────
+
+1. Acesse: https://app.netlify.com
+2. Faça login ou crie conta
+3. Arraste a pasta dist para o Netlify
+4. Aguarde o deploy
+
+ETAPA 7.3: CONFIGURAR VARIÁVEIS DE AMBIENTE NO NETLIFY
+──────────────────────────────────────────────────────────────────────────
+
+⚠️ CRÍTICO: SEM ISSO O SITE NÃO FUNCIONA!
+
+1. No Netlify, clique no seu site
+2. Site configuration → Environment variables
+3. Clique "Add a variable"
+4. Adicione 2 variáveis:
+
+   Key: VITE_SUPABASE_URL
+   Value: https://seu-projeto-ref.supabase.co
+
+   Key: VITE_SUPABASE_ANON_KEY
+   Value: sua-anon-key-completa
+
+5. Clique "Save"
+
+ETAPA 7.4: CONFIGURAR DOMÍNIO PERSONALIZADO (OPCIONAL)
+──────────────────────────────────────────────────────────────────────────
+
+1. No Netlify → Domain management
+2. Add custom domain
+3. Digite seu domínio (ex: meu-saas.com.br)
+4. Siga as instruções para configurar DNS
+
+ETAPA 7.5: REBUILD COM VARIÁVEIS DE AMBIENTE
+──────────────────────────────────────────────────────────────────────────
+
+Depois de configurar as variáveis:
+
+OPÇÃO A - Via Netlify (se conectou via Git):
+1. Deploys → Trigger deploy → Clear cache and deploy site
+
+OPÇÃO B - Build local (se usa drag & drop):
+1. Delete pasta dist
+2. npm run build
+3. Arraste nova pasta dist para o Netlify
+
+ETAPA 7.6: ATUALIZAR CONFIGURAÇÕES DO GOOGLE OAUTH
+──────────────────────────────────────────────────────────────────────────
+
+⚠️ IMPORTANTE: Depois do deploy, atualize as URLs!
+
+1. Google Cloud Console → APIs & Services → Credentials
+2. Clique no seu OAuth Client ID
+3. Em "Authorized JavaScript origins":
+   - Adicione: https://seu-dominio-netlify.netlify.app
+   - OU: https://seu-dominio-personalizado.com.br
+
+4. Clique "Save"
+5. Aguarde 5-10 minutos para propagar
+
+ETAPA 7.7: ATUALIZAR SITE URL NO SUPABASE
+──────────────────────────────────────────────────────────────────────────
+
+1. Supabase Dashboard → Authentication → URL Configuration
+2. Atualize:
+
+   Site URL: https://seu-dominio-final.com.br
+   (SEM barra no final!)
+
+   Redirect URLs: https://seu-dominio-final.com.br/**
+
+3. Clique "Save"
+
+═══════════════════════════════════════════════════════════════════════════
+📋 PARTE 8: TESTAR TUDO
+═══════════════════════════════════════════════════════════════════════════
+
+ETAPA 8.1: TESTAR LOGIN COM EMAIL
+──────────────────────────────────────────────────────────────────────────
+
+1. Acesse seu site
+2. Clique em "Criar Conta"
+3. Preencha email, nome e senha
+4. Clique "Criar Conta"
+5. Deve redirecionar para /dashboard ✅
+
+ETAPA 8.2: TESTAR LOGIN COM GOOGLE
+──────────────────────────────────────────────────────────────────────────
+
+⚠️ Se não funcionar de primeira, aguarde 10-15 minutos (propagação Google)
+
+1. Acesse seu site
+2. Clique em "Continuar com Google"
+3. Faça login com sua conta Google
+4. Console (F12) deve mostrar:
+
+   🔵 Iniciando Google OAuth com redirect: https://...
+   🔑 Token OAuth detectado, processando...
+   🔄 Auth state changed: SIGNED_IN
+   ✅ Usuário logado detectado, redirecionando...
+
+5. Deve redirecionar para /dashboard ✅
+
+ETAPA 8.3: TESTAR WEBHOOK
+──────────────────────────────────────────────────────────────────────────
+
+1. Faça uma compra de teste no seu gateway
+2. Supabase → SQL Editor:
+
+   SELECT * FROM webhook_logs ORDER BY created_at DESC LIMIT 5;
+
+3. Deve aparecer o registro do webhook ✅
+
+4. Verifique se o usuário foi criado/atualizado:
+
+   SELECT email, plano_ativo, data_expiracao_plano
+   FROM users
+   WHERE email = 'email-do-teste@exemplo.com';
+
+5. Plano deve estar ativado ✅
+
+ETAPA 8.4: TESTAR PAINEL ADMIN
+──────────────────────────────────────────────────────────────────────────
+
+1. Torne seu usuário admin no SQL Editor:
+
+   UPDATE users SET is_admin = true WHERE email = 'seu-email@exemplo.com';
+
+2. Acesse: /admin
+3. Deve ver o painel admin ✅
+
+4. Acesse: /admin/webhooks
+5. Deve ver os logs dos webhooks ✅
+
+═══════════════════════════════════════════════════════════════════════════
+🔧 TROUBLESHOOTING: PROBLEMAS COMUNS E SOLUÇÕES
+═══════════════════════════════════════════════════════════════════════════
+
+PROBLEMA: Google Login retorna para / em vez de /dashboard
+SOLUÇÃO:
+- Verifique Site URL no Supabase (SEM barra no final!)
+- redirectTo no código deve ser: window.location.origin (sem /dashboard)
+- Aguarde 10-15 minutos após mudanças no Google Cloud
+
+PROBLEMA: "Invalid JWT" no webhook
+SOLUÇÃO:
+- Adicione no config.toml: [functions.checkout-webhook] verify_jwt = false
+- Faça deploy novamente: npx supabase functions deploy checkout-webhook
+
+PROBLEMA: Build não tem variáveis de ambiente
+SOLUÇÃO:
+- Verifique .env na raiz do projeto
+- Se deploy via Netlify drag&drop: configure variáveis no Netlify primeiro
+- Delete pasta dist, faça npm run build novamente
+
+PROBLEMA: "redirect_uri_mismatch" no Google
+SOLUÇÃO:
+- Verifique Authorized redirect URIs no Google Cloud
+- Deve ter: https://seu-projeto-ref.supabase.co/auth/v1/callback
+- Aguarde 10 minutos após mudanças
+
+PROBLEMA: Webhook não está sendo chamado
+SOLUÇÃO:
+- Verifique URL do webhook no gateway de pagamento
+- Teste manualmente: curl -X POST sua-url-do-webhook
+- Verifique logs: npx supabase functions logs checkout-webhook
+
+PROBLEMA: "Missing Supabase environment variables"
+SOLUÇÃO:
+- .env está na raiz do projeto?
+- Variáveis começam com VITE_?
+- Refez o build depois de criar .env?
+
+═══════════════════════════════════════════════════════════════════════════
+✅ CHECKLIST FINAL
+═══════════════════════════════════════════════════════════════════════════
+
+SUPABASE:
+☐ Projeto criado
+☐ Credenciais copiadas (URL, anon key, project ref)
+☐ Tabela users criada
+☐ Tabela webhook_logs criada
+☐ RLS configurado corretamente
+☐ Google Provider ativado em Authentication
+☐ Site URL configurada (SEM barra final)
+☐ Redirect URLs configuradas (**/*.*)
+
+GOOGLE CLOUD:
+☐ Projeto criado
+☐ OAuth Consent Screen configurado
+☐ OAuth Client ID criado
+☐ Authorized JavaScript origins com 2 URLs (site + supabase)
+☐ Authorized redirect URIs com callback do Supabase
+☐ Client ID e Secret copiados
+
+CÓDIGO:
+☐ .env criado na raiz
+☐ Variáveis VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY
+☐ src/lib/supabase.ts criado
+☐ AuthContext.tsx completo
+☐ main.tsx processando OAuth callback
+☐ App.tsx com redirect em LandingPage
+☐ Login.tsx com botão Google e redirect
+
+WEBHOOK:
+☐ Supabase CLI instalado (npm)
+☐ npx supabase init executado
+☐ npx supabase login feito
+☐ npx supabase link executado
+☐ config.toml com verify_jwt = false
+☐ Edge Function criada em supabase/functions/
+☐ npx supabase functions deploy executado
+☐ URL do webhook copiada
+☐ Webhook configurado no gateway de pagamento
+
+NETLIFY:
+☐ Conta criada
+☐ Build local feito (npm run build)
+☐ Pasta dist enviada
+☐ Variáveis de ambiente configuradas no Netlify
+☐ Domínio configurado (se aplicável)
+☐ Google OAuth atualizado com URL final
+☐ Supabase Site URL atualizada
+
+TESTES:
+☐ Login com email funciona
+☐ Login com Google funciona
+☐ Redirect para dashboard funciona
+☐ Webhook recebe pagamentos
+☐ Usuários são criados automaticamente
+☐ Planos são ativados corretamente
+☐ Painel admin acessível
+☐ Logs de webhook aparecem
+
+═══════════════════════════════════════════════════════════════════════════
+📚 ARQUIVOS DE REFERÊNCIA
+═══════════════════════════════════════════════════════════════════════════
+
+Todos os arquivos completos estão no projeto EdukaPrime:
+
+- src/lib/supabase.ts
+- src/contexts/AuthContext.tsx
+- src/pages/Login.tsx
+- src/pages/admin/WebhookLogs.tsx
+- src/main.tsx
+- src/App.tsx
+- supabase/functions/checkout-webhook/index.ts
+- supabase/config.toml
+- sql/create_webhook_logs.sql
+- sql/webhook_product_mapping.sql
+
+═══════════════════════════════════════════════════════════════════════════
+🎓 CONCEITOS IMPORTANTES
+═══════════════════════════════════════════════════════════════════════════
+
+ORDEM DE EXECUÇÃO OAUTH:
+1. Usuário clica "Continuar com Google"
+2. Código chama supabase.auth.signInWithOAuth()
+3. Navegador redireciona para Google
+4. Usuário faz login no Google
+5. Google redireciona para: https://projeto.supabase.co/auth/v1/callback
+6. Supabase processa e redireciona para: https://seu-site.com/#access_token=...
+7. main.tsx detecta token no hash
+8. AuthContext processa token via onAuthStateChange
+9. App.tsx ou Login.tsx detecta user e redireciona para /dashboard
+
+POR QUE verify_jwt = false?
+- Edge Functions por padrão exigem autenticação JWT
+- Webhooks externos (como gateways de pagamento) não têm JWT
+- verify_jwt = false permite chamadas públicas na função
+- É seguro porque a função valida os dados recebidos
+
+POR QUE SEM BARRA NO SITE URL?
+- Site URL com barra: https://site.com/
+- redirectTo: /dashboard
+- Resultado: https://site.com//dashboard (quebrado!)
+- Site URL sem barra: https://site.com
+- redirectTo: /dashboard
+- Resultado: https://site.com/dashboard (correto!)
+
+VARIÁVEIS DE AMBIENTE:
+- Build local: Lê do arquivo .env na raiz
+- Netlify com Git: Lê das variáveis configuradas no Netlify
+- Netlify com drag&drop: Precisa buildar LOCAL com .env correto
+
+═══════════════════════════════════════════════════════════════════════════
+
+FIM DO GUIA - BOA SORTE COM SEU SAAS! 🚀
+
+Criado com base no projeto EdukaPrime
+Todas as armadilhas e erros comuns já foram documentados e corrigidos.
+
+═══════════════════════════════════════════════════════════════════════════

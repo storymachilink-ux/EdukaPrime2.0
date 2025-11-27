@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { PostItTitle } from '../../components/ui/PostItTitle';
 import { supabase } from '../../lib/supabase';
-import { RefreshCw, CheckCircle, XCircle, AlertCircle, Eye, Search, Filter, Calendar } from 'lucide-react';
+import { RefreshCw, CheckCircle, XCircle, AlertCircle, Eye, Search, Filter, Calendar, Package } from 'lucide-react';
 
 interface WebhookLog {
   id: string;
@@ -25,6 +25,7 @@ export default function WebhookLogs() {
   const [logs, setLogs] = useState<WebhookLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLog, setSelectedLog] = useState<WebhookLog | null>(null);
+  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
 
   // Filtros
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -41,7 +42,7 @@ export default function WebhookLogs() {
     try {
       let query = supabase
         .from('webhook_logs')
-        .select('*, product_id, product_title')
+        .select('*')
         .order('created_at', { ascending: false });
 
       // Filtro por status
@@ -58,7 +59,12 @@ export default function WebhookLogs() {
 
       const { data, error } = await query.limit(100);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro na query:', error);
+        throw error;
+      }
+
+      console.log('Dados carregados:', data?.[0]);
       setLogs(data || []);
     } catch (error) {
       console.error('Erro ao carregar logs:', error);
@@ -248,53 +254,77 @@ export default function WebhookLogs() {
                   </tr>
                 ) : (
                   filteredLogs.map((log) => (
-                    <tr key={log.id} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm">
-                        {new Date(log.created_at).toLocaleString('pt-BR')}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(log.status)}
-                          <span className={`px-2 py-1 rounded text-xs font-semibold border ${getStatusBadge(log.status)}`}>
-                            {log.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div>
-                          <p className="font-semibold">{log.customer_name || '-'}</p>
-                          <p className="text-gray-600 text-xs">{log.customer_email}</p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {log.product_id ? (
-                          <div className="space-y-1">
-                            <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold border border-purple-300">
-                              📦 {log.product_id}
+                    <>
+                      <tr key={log.id} className="border-b border-gray-200 hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm">
+                          {new Date(log.created_at).toLocaleString('pt-BR')}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(log.status)}
+                            <span className={`px-2 py-1 rounded text-xs font-semibold border ${getStatusBadge(log.status)}`}>
+                              {log.status}
                             </span>
-                            {log.product_title && (
-                              <div className="text-xs text-gray-600 truncate max-w-xs">
-                                {log.product_title}
-                              </div>
-                            )}
                           </div>
-                        ) : (
-                          <span className="text-gray-400 text-xs">Sem produto</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-semibold">
-                        R$ {typeof log.amount === 'number' ? log.amount.toFixed(2) : '0.00'}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => setSelectedLog(log)}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-semibold transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                          Ver
-                        </button>
-                      </td>
-                    </tr>
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <div>
+                            <p className="font-semibold">{log.customer_name || '-'}</p>
+                            <p className="text-gray-600 text-xs">{log.customer_email}</p>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          {log.product_id ? (
+                            <button
+                              onClick={() => setExpandedProduct(expandedProduct === log.id ? null : log.id)}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold border border-purple-300 hover:bg-purple-200 transition-colors"
+                            >
+                              <Package className="w-3 h-3" />
+                              Planos
+                            </button>
+                          ) : (
+                            <span className="text-gray-400 text-xs">Sem produto</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-semibold">
+                          R$ {typeof log.amount === 'number' ? log.amount.toFixed(2) : '0.00'}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => setSelectedLog(log)}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-semibold transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Ver
+                          </button>
+                        </td>
+                      </tr>
+                      {expandedProduct === log.id && log.product_id && (
+                        <tr className="bg-purple-50 border-b border-purple-200">
+                          <td colSpan={6} className="px-4 py-4">
+                            <div className="space-y-3">
+                              <p className="text-sm font-semibold text-purple-900">Detalhes do Plano/Produto:</p>
+                              <div className="flex flex-wrap gap-2">
+                                <div className="px-4 py-2 bg-purple-100 border-2 border-purple-300 rounded-lg">
+                                  <p className="text-xs text-purple-600 font-semibold">ID do Produto</p>
+                                  <p className="text-sm font-bold text-purple-900">{log.product_id}</p>
+                                </div>
+                                {log.product_title && (
+                                  <div className="px-4 py-2 bg-purple-100 border-2 border-purple-300 rounded-lg">
+                                    <p className="text-xs text-purple-600 font-semibold">Descrição</p>
+                                    <p className="text-sm font-bold text-purple-900">{log.product_title}</p>
+                                  </div>
+                                )}
+                                <div className="px-4 py-2 bg-green-100 border-2 border-green-300 rounded-lg">
+                                  <p className="text-xs text-green-600 font-semibold">Valor</p>
+                                  <p className="text-sm font-bold text-green-900">R$ {typeof log.amount === 'number' ? log.amount.toFixed(2) : '0.00'}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   ))
                 )}
               </tbody>

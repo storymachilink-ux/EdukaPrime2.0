@@ -1,0 +1,718 @@
+═══════════════════════════════════════════════════════════════════════════
+🤖 REGRAS E DIRETRIZES PARA CLAUDE (IA ASSISTENTE)
+═══════════════════════════════════════════════════════════════════════════
+
+Este documento contém regras essenciais para evitar erros comuns ao trabalhar
+com projetos SAAS que incluem Supabase, Google OAuth, Webhooks e deploy.
+
+BASEADO EM: Projeto EdukaPrime - Todos os erros cometidos e corrigidos
+OBJETIVO: Guiar futuras interações para serem mais eficientes e precisas
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #1: SEMPRE ESPECIFICAR LOCALIZAÇÕES COMPLETAS
+═══════════════════════════════════════════════════════════════════════════
+
+❌ ERRADO:
+"Configure o Site URL no Supabase"
+
+✅ CORRETO:
+"Configure o Site URL no Supabase seguindo estes passos:
+1. Acesse: https://app.supabase.com
+2. Clique no seu projeto
+3. Menu lateral → Authentication
+4. Aba → URL Configuration
+5. Campo Site URL: digite https://seu-dominio.com (SEM barra no final)
+6. Clique no botão Save (canto inferior direito)"
+
+APLICAR EM:
+- Configurações no Supabase Dashboard
+- Configurações no Google Cloud Console
+- Configurações no Netlify
+- Qualquer interface web onde o usuário precisa clicar
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #2: SQL SEMPRE ANTES DO CÓDIGO
+═══════════════════════════════════════════════════════════════════════════
+
+❌ ERRADO:
+1. Criar código que usa tabela X
+2. Depois criar tabela X no banco
+
+✅ CORRETO:
+1. Criar tabela X no banco (fornecer SQL completo)
+2. Aguardar confirmação do usuário
+3. Depois criar código que usa tabela X
+
+SEMPRE FORNECER:
+- SQL completo e funcional
+- Instruções de onde executar: "Supabase Dashboard → SQL Editor → New Query"
+- Query de verificação: "SELECT * FROM nome_tabela LIMIT 1;"
+- Explicar o que cada parte do SQL faz
+
+EXEMPLO:
+"Antes de criar o código, vamos criar a tabela no banco de dados.
+
+Execute este SQL no Supabase Dashboard → SQL Editor → New Query:
+
+[SQL aqui]
+
+Depois de executar, verifique se funcionou:
+SELECT * FROM webhook_logs LIMIT 1;
+
+Me confirme quando terminar e eu crio o código!"
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #3: VARIÁVEIS DE AMBIENTE - AVISAR MÚLTIPLOS LOCAIS
+═══════════════════════════════════════════════════════════════════════════
+
+Variáveis de ambiente precisam estar em MÚLTIPLOS locais:
+
+1. ARQUIVO .env LOCAL (para desenvolvimento e build local)
+   - Localização: Raiz do projeto
+   - Formato: VITE_NOME_VARIAVEL=valor
+
+2. NETLIFY (para deploy via drag & drop ou quando usa build próprio)
+   - Localização: Site → Site configuration → Environment variables
+   - Adicionar ANTES de fazer build/deploy
+
+3. NUNCA assumir que configurar em 1 lugar resolve!
+
+✅ SEMPRE PERGUNTAR:
+"Você está fazendo:
+A) Build local + drag & drop no Netlify?
+B) Deploy via Git conectado ao Netlify?
+
+Se A: Configure no .env E no Netlify
+Se B: Configure apenas no Netlify"
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #4: GOOGLE OAUTH - URLS SEM BARRA
+═══════════════════════════════════════════════════════════════════════════
+
+⚠️ ARMADILHA CRÍTICA: Barra no final quebra OAuth!
+
+❌ ERRADO:
+Site URL: https://edukaprime.com.br/
+redirectTo: window.location.origin + '/dashboard'
+Resultado: https://edukaprime.com.br//dashboard (quebrado!)
+
+✅ CORRETO:
+Site URL: https://edukaprime.com.br
+redirectTo: window.location.origin + '/dashboard'
+Resultado: https://edukaprime.com.br/dashboard
+
+SEMPRE AVISAR:
+"⚠️ IMPORTANTE: Configure o Site URL SEM barra no final!
+ERRADO: https://seu-site.com/
+CORRETO: https://seu-site.com"
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #5: PROPAGAÇÃO DE MUDANÇAS - AVISAR TEMPO DE ESPERA
+═══════════════════════════════════════════════════════════════════════════
+
+Algumas mudanças levam tempo para propagar:
+
+GOOGLE CLOUD CONSOLE:
+- Mudanças em OAuth: 5-15 minutos
+- Adicionar/remover URLs: 5-15 minutos
+
+NETLIFY:
+- Variáveis de ambiente: Rebuild necessário
+- Domínio DNS: Até 48 horas
+
+SUPABASE:
+- Edge Functions: Imediato após deploy
+- Configurações Auth: 1-2 minutos
+
+✅ SEMPRE AVISAR:
+"Depois de fazer essa mudança no Google Cloud, aguarde 10-15 minutos
+antes de testar. As mudanças precisam propagar nos servidores do Google."
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #6: DEPLOY DE EDGE FUNCTIONS - CONFIG.TOML PRIMEIRO
+═══════════════════════════════════════════════════════════════════════════
+
+ORDEM CORRETA:
+1. Criar/atualizar supabase/config.toml
+2. Adicionar [functions.nome-funcao] verify_jwt = false
+3. DEPOIS fazer deploy: npx supabase functions deploy nome-funcao
+
+❌ ERRADO:
+1. Deploy da função
+2. Testar
+3. Erro "Invalid JWT"
+4. Corrigir config.toml
+5. Redeploy
+
+✅ CORRETO:
+"Antes de fazer deploy, vamos configurar o config.toml:
+
+[adicionar código]
+
+⚠️ verify_jwt = false é necessário porque webhooks externos não têm JWT!
+
+Agora sim, faça o deploy:
+npx supabase functions deploy checkout-webhook"
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #7: DEBUG - FORNECER COMANDOS CONSOLE PRONTOS
+═══════════════════════════════════════════════════════════════════════════
+
+Quando algo não funciona, fornecer comandos de debug IMEDIATAMENTE:
+
+✅ BOA PRÁTICA:
+"Vamos debugar. Abra o Console (F12) e execute:
+
+1. Digite: allow pasting
+2. Aperte Enter
+3. Cole este código:
+   [código específico aqui]
+4. Me diga o que apareceu"
+
+SEMPRE INCLUIR:
+- Instrução "allow pasting" se for primeira vez
+- Código pronto para copiar/colar
+- O que esperar como resposta
+- O que significa cada possível resposta
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #8: ERROS COMUNS - ANTECIPAR E PREVENIR
+═══════════════════════════════════════════════════════════════════════════
+
+ERRO: "redirect_uri_mismatch"
+CAUSA: Faltou URL no Google Cloud Console
+PREVENÇÃO: Ao configurar Google OAuth, listar TODAS as URLs necessárias:
+  - Authorized JavaScript origins: site + supabase
+  - Authorized redirect URIs: callback do supabase
+
+ERRO: "Invalid JWT" no webhook
+CAUSA: verify_jwt não está false
+PREVENÇÃO: Sempre mencionar verify_jwt = false ao criar webhook
+
+ERRO: Google login volta para / sem logar
+CAUSA: redirectTo com /dashboard causa duplo redirect
+PREVENÇÃO: redirectTo deve ser apenas origin, sem path
+
+ERRO: "Missing Supabase environment variables"
+CAUSA: Build sem .env ou variáveis erradas
+PREVENÇÃO: Confirmar .env existe ANTES de instruir npm run build
+
+ERRO: "supabase is not defined" no console
+CAUSA: Build não incluiu variáveis de ambiente
+PREVENÇÃO: Perguntar se usuário criou .env ANTES de buildar
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #9: ORDEM DE CONFIGURAÇÃO - SIGA RELIGIOSAMENTE
+═══════════════════════════════════════════════════════════════════════════
+
+ORDEM CORRETA PARA GOOGLE OAUTH:
+1. Criar projeto no Google Cloud
+2. Configurar OAuth Consent Screen
+3. Criar OAuth Client ID com AMBAS as URLs (site + supabase)
+4. Copiar Client ID e Secret
+5. Configurar no Supabase Dashboard
+6. Configurar Site URL no Supabase (SEM barra)
+7. Criar código com redirectTo: window.location.origin
+8. Testar
+
+❌ NUNCA PULAR ETAPAS OU MUDAR A ORDEM!
+
+ORDEM CORRETA PARA WEBHOOK:
+1. Criar tabela webhook_logs no banco (SQL)
+2. Instalar Supabase CLI
+3. Login e link ao projeto
+4. Configurar config.toml (com verify_jwt = false)
+5. Criar Edge Function
+6. Deploy da função
+7. Copiar URL
+8. Configurar no gateway de pagamento
+9. Testar
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #10: CONFIRMAÇÕES - SEMPRE PEDIR ANTES DE PROSSEGUIR
+═══════════════════════════════════════════════════════════════════════════
+
+Após cada etapa importante, PERGUNTAR:
+
+✅ EXEMPLOS:
+"Execute o SQL acima. Deu algum erro? Me confirme quando terminar."
+
+"Copie o Client ID e Client Secret. Você conseguiu copiar? Me confirme!"
+
+"Faça o build com npm run build. O comando terminou sem erros? Me avise!"
+
+❌ NÃO ASSUMIR que deu certo e continuar!
+
+ESPECIALMENTE IMPORTANTE PARA:
+- Execução de SQL
+- Comandos CLI (npm, npx)
+- Configurações em dashboards externos
+- Build e deploy
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #11: LOGS E DEBUGGING - SEMPRE ADICIONAR ANTES
+═══════════════════════════════════════════════════════════════════════════
+
+Ao criar funcionalidades que podem falhar, ADICIONAR LOGS desde o início:
+
+✅ CORRETO:
+const signInWithGoogle = async () => {
+  console.log('🔵 Iniciando Google OAuth com redirect:', redirectUrl);
+  const { data, error } = await supabase.auth.signInWithOAuth(...);
+  console.log('🔵 Resposta OAuth:', { data, error });
+  if (error) throw error;
+};
+
+❌ ERRADO:
+const signInWithGoogle = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth(...);
+  if (error) throw error;
+};
+
+ADICIONAR LOGS EM:
+- OAuth flows
+- Webhook processing
+- API calls
+- Redirects
+- Estado de autenticação
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #12: CÓDIGO CRÍTICO - EXPLICAR O "PORQUÊ"
+═══════════════════════════════════════════════════════════════════════════
+
+Código não-óbvio DEVE ter comentários explicando o motivo:
+
+✅ EXEMPLO:
+// Processar callback OAuth ANTES de renderizar o app
+// Isso previne o React Router de limpar o hash antes do Supabase processar
+const handleOAuthCallback = async () => {
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+  const accessToken = hashParams.get('access_token');
+
+  if (accessToken) {
+    // Dar 100ms para o Supabase processar o token completamente
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+};
+
+SEMPRE EXPLICAR:
+- Por que verify_jwt = false
+- Por que redirectTo não tem /dashboard
+- Por que processar OAuth no main.tsx
+- Por que aguardar tempo de propagação
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #13: MULTIPLOS AMBIENTES - DIFERENCIAR CLARAMENTE
+═══════════════════════════════════════════════════════════════════════════
+
+DESENVOLVIMENTO LOCAL:
+- URL: http://localhost:5173
+- Variáveis: .env na raiz
+- Comando: npm run dev
+
+BUILD LOCAL + DEPLOY MANUAL:
+- Build: npm run build (usa .env local)
+- Deploy: Arrastar pasta dist para Netlify
+- Variáveis: .env local E Netlify (ambos!)
+
+DEPLOY AUTOMATICO (GIT):
+- Variáveis: Apenas no Netlify
+- Build: Netlify faz automaticamente
+- .env local: Ignorado
+
+✅ SEMPRE PERGUNTAR:
+"Como você está fazendo deploy?
+A) Build local + drag & drop no Netlify
+B) Conectou Git e Netlify builda automaticamente
+C) Ainda está testando localmente (localhost)
+
+Dependendo da resposta, as instruções mudam!"
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #14: URLS E REFERÊNCIAS - SEMPRE FORNECER LINKS DIRETOS
+═══════════════════════════════════════════════════════════════════════════
+
+❌ ERRADO:
+"Vá no Google Cloud Console"
+
+✅ CORRETO:
+"Acesse: https://console.cloud.google.com
+Menu lateral → APIs & Services → Credentials"
+
+SEMPRE INCLUIR:
+- URL completa e clicável
+- Caminho exato dentro do site
+- Nome dos botões/menus para clicar
+
+LINKS IMPORTANTES:
+- Supabase: https://app.supabase.com
+- Google Cloud: https://console.cloud.google.com
+- Netlify: https://app.netlify.com
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #15: TESTES - FORNECER CHECKLIST COMPLETO
+═══════════════════════════════════════════════════════════════════════════
+
+Após implementar algo, SEMPRE fornecer checklist de testes:
+
+✅ EXEMPLO:
+"Vamos testar o Google Login. Faça:
+
+☐ 1. Abra F12 → Console
+☐ 2. Clique em 'Preserve log'
+☐ 3. Clique em 'Continuar com Google'
+☐ 4. Faça login
+☐ 5. Verifique se apareceu:
+     - 🔵 Iniciando Google OAuth
+     - 🔑 Token OAuth detectado
+     - ✅ Usuário autenticado
+☐ 6. Você foi redirecionado para /dashboard?
+
+Me diga quais checkboxes passaram e quais falharam!"
+
+SEMPRE INCLUIR:
+- Passos numerados
+- O que esperar em cada passo
+- Como verificar se passou
+- O que fazer se falhar
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #16: SENHAS E CREDENCIAIS - INSTRUIR GUARDAR
+═══════════════════════════════════════════════════════════════════════════
+
+Ao gerar/criar credenciais, SEMPRE avisar:
+
+✅ EXEMPLO:
+"Você verá o Client ID e Client Secret.
+
+⚠️ COPIE E GUARDE EM LOCAL SEGURO:
+- Client ID: 123456-abc.apps.googleusercontent.com
+- Client Secret: GOCSPX-abc123...
+
+Você vai usar essas credenciais em 2 lugares:
+1. Supabase Dashboard
+2. config.toml local
+
+Cole em um arquivo de texto agora mesmo!"
+
+APLICAR PARA:
+- Client ID/Secret do Google
+- Service Role Key do Supabase
+- Senhas de banco de dados
+- API Keys de gateways de pagamento
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #17: COMANDOS CLI - EXPLICAR O QUE FAZ
+═══════════════════════════════════════════════════════════════════════════
+
+Antes de pedir para executar comando, EXPLICAR:
+
+✅ EXEMPLO:
+"Vamos instalar o Supabase CLI no projeto:
+
+npm install supabase --save-dev
+
+O que isso faz:
+- Instala o CLI do Supabase localmente no projeto
+- --save-dev adiciona às dependências de desenvolvimento
+- Permite usar 'npx supabase' para comandos
+
+Execute e me avise se deu algum erro!"
+
+SEMPRE EXPLICAR:
+- O que o comando faz
+- Por que é necessário
+- O que esperar como resultado
+- Quanto tempo pode demorar
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #18: ERROS - FORNECER CONTEXTO ANTES DE SOLUÇÃO
+═══════════════════════════════════════════════════════════════════════════
+
+Quando houver erro:
+
+1. RECONHECER o erro
+2. EXPLICAR o que está acontecendo
+3. EXPLICAR por que acontece
+4. FORNECER solução
+5. EXPLICAR como a solução resolve
+
+✅ EXEMPLO:
+"❌ Erro: 'Invalid JWT'
+
+O que está acontecendo:
+O webhook do GGCheckout está tentando chamar sua Edge Function,
+mas a função está rejeitando porque não há token JWT.
+
+Por que acontece:
+Por padrão, Edge Functions do Supabase exigem autenticação JWT.
+Webhooks externos não têm esse token.
+
+Solução:
+Adicionar 'verify_jwt = false' no config.toml para permitir
+chamadas públicas nessa função específica.
+
+Como isso resolve:
+Desabilita verificação JWT apenas para essa função,
+permitindo que o GGCheckout chame sem autenticação."
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #19: ARQUITETURA - EXPLICAR FLUXO COMPLETO
+═══════════════════════════════════════════════════════════════════════════
+
+Ao implementar fluxos complexos (OAuth, Webhook), EXPLICAR o fluxo todo:
+
+✅ EXEMPLO OAUTH:
+"Como funciona o fluxo de Google Login:
+
+1. Usuário clica 'Continuar com Google'
+2. Seu site chama supabase.auth.signInWithOAuth()
+3. Navegador redireciona para accounts.google.com
+4. Usuário faz login no Google
+5. Google valida e redireciona para: supabase.co/auth/v1/callback
+6. Supabase processa o token do Google
+7. Supabase redireciona para: seu-site.com/#access_token=xyz
+8. Seu main.tsx detecta o token no hash
+9. AuthContext processa via onAuthStateChange
+10. Usuário está logado, redirect para /dashboard
+
+Agora vamos implementar cada parte..."
+
+APLICAR EM:
+- OAuth flows
+- Webhook processing
+- Payment flows
+- Qualquer fluxo multi-etapas
+
+═══════════════════════════════════════════════════════════════════════════
+📌 REGRA #20: VERSIONAMENTO - ESPECIFICAR VERSÕES
+═══════════════════════════════════════════════════════════════════════════
+
+Quando possível, especificar versões de bibliotecas:
+
+✅ EXEMPLO:
+npm install @supabase/supabase-js@2
+
+❌ EVITAR:
+npm install @supabase/supabase-js
+
+MOTIVO:
+Versões podem ter breaking changes. Especificar garante compatibilidade.
+
+APLICAR EM:
+- npm install de libs principais
+- Importações em Edge Functions (ex: deno.land/std@0.168.0)
+
+═══════════════════════════════════════════════════════════════════════════
+📋 CHECKLIST: ANTES DE RESPONDER AO USUÁRIO
+═══════════════════════════════════════════════════════════════════════════
+
+Antes de enviar resposta, verificar:
+
+☐ Especifiquei localização exata (dashboard, menu, botão)?
+☐ SQL foi fornecido ANTES do código que usa?
+☐ Avisei sobre tempo de propagação (se aplicável)?
+☐ Instrui configurar variáveis em TODOS os locais necessários?
+☐ Avisei sobre URLs sem barra?
+☐ Pedi confirmação antes de prosseguir?
+☐ Adicionei logs de debug no código?
+☐ Expliquei o "porquê" do código não-óbvio?
+☐ Forneci links clicáveis?
+☐ Criei checklist de testes?
+☐ Avisei para guardar credenciais?
+☐ Expliquei o que cada comando faz?
+☐ Dei contexto antes da solução?
+☐ Expliquei o fluxo completo?
+
+═══════════════════════════════════════════════════════════════════════════
+🎯 PRINCÍPIOS FUNDAMENTAIS
+═══════════════════════════════════════════════════════════════════════════
+
+1. CLAREZA > BREVIDADE
+   Melhor explicar demais que deixar dúvidas
+
+2. PREVENÇÃO > CORREÇÃO
+   Melhor avisar antes que corrigir depois
+
+3. ORDEM IMPORTA
+   Siga a sequência correta ou tudo quebra
+
+4. CONFIRMAR SEMPRE
+   Nunca assuma que funcionou
+
+5. ANTECIPAR ERROS
+   Se você sabe que pode dar errado, avise antes
+
+6. LOGS SÃO SALVADORES
+   Adicione logs desde o início, não depois do erro
+
+7. EXPLICAR O PORQUÊ
+   Usuário deve entender, não só copiar
+
+8. SER ESPECÍFICO
+   "No Supabase" < "Supabase Dashboard → SQL Editor → New Query"
+
+9. TESTAR É OBRIGATÓRIO
+   Forneça checklist completo de testes
+
+10. DOCUMENTAR TUDO
+    O que parece óbvio hoje, não será amanhã
+
+═══════════════════════════════════════════════════════════════════════════
+💬 FRASES PROIBIDAS (E SUAS ALTERNATIVAS)
+═══════════════════════════════════════════════════════════════════════════
+
+❌ "Configure no Supabase"
+✅ "Acesse https://app.supabase.com → Seu projeto → Settings → API"
+
+❌ "Depois é só fazer deploy"
+✅ "Execute: npx supabase functions deploy nome-funcao
+   Isso vai fazer upload do código para o servidor do Supabase.
+   Aguarde aparecer a URL da função."
+
+❌ "Teste se funcionou"
+✅ "Vamos testar. Faça:
+   1. Acesse seu site
+   2. Abra F12 → Console
+   3. Clique em X
+   4. Deve aparecer: Y
+   5. Me confirme se apareceu!"
+
+❌ "Deve funcionar agora"
+✅ "Agora deve funcionar. Teste e me diga:
+   - Funcionou? ✅
+   - Deu erro? Me mostre o erro completo
+   - Não aconteceu nada? Me mostre o console"
+
+❌ "Crie o arquivo X"
+✅ "Crie o arquivo: src/lib/supabase.ts
+   Copie este código:
+   [código aqui]
+
+   O que esse arquivo faz:
+   [explicação]"
+
+═══════════════════════════════════════════════════════════════════════════
+🚨 SINAIS DE ALERTA - QUANDO PARAR E PERGUNTAR
+═══════════════════════════════════════════════════════════════════════════
+
+PARAR e PERGUNTAR ao usuário se:
+
+1. Usuário disse que algo "não funciona" mas não deu detalhes
+   → Pedir: logs do console, mensagem de erro exata, o que aconteceu
+
+2. Você percebe que pulou uma etapa
+   → Voltar e perguntar se o usuário fez aquela etapa
+
+3. Há múltiplos caminhos possíveis (local vs deploy, drag&drop vs git)
+   → Perguntar qual caminho o usuário está seguindo
+
+4. Comando CLI pode falhar
+   → Pedir para o usuário executar e CONFIRMAR resultado
+
+5. Mudança requer tempo de propagação
+   → Avisar tempo de espera E perguntar se aguardou
+
+6. Credenciais foram geradas
+   → Confirmar que usuário copiou e guardou
+
+7. SQL foi executado
+   → Pedir confirmação de sucesso ou erro
+
+8. Build foi feito
+   → Perguntar se terminou sem erros
+
+═══════════════════════════════════════════════════════════════════════════
+📚 APRENDIZADOS DO PROJETO EDUKAPRIME
+═══════════════════════════════════════════════════════════════════════════
+
+ERRO COMETIDO: Instruir criar código que usa webhook_logs antes de criar tabela
+LIÇÃO: SQL sempre primeiro, código depois
+
+ERRO COMETIDO: Não avisar sobre verify_jwt = false
+LIÇÃO: Mencionar ANTES de deploy, não depois do erro "Invalid JWT"
+
+ERRO COMETIDO: redirectTo com /dashboard causou duplo redirect
+LIÇÃO: OAuth redirectTo deve ser origin sem path, redirect acontece depois
+
+ERRO COMETIDO: Site URL com barra no final
+LIÇÃO: SEMPRE avisar: SEM barra no final!
+
+ERRO COMETIDO: Não avisar sobre tempo de propagação do Google
+LIÇÃO: Mudanças no Google levam 10-15min, avisar isso ANTES
+
+ERRO COMETIDO: Assumir que variáveis no .env eram suficientes
+LIÇÃO: Perguntar COMO está fazendo deploy (local vs Netlify)
+
+ERRO COMETIDO: Não adicionar logs de debug desde início
+LIÇÃO: Adicionar console.log() desde primeira versão do código
+
+ERRO COMETIDO: Não processar OAuth callback no main.tsx
+LIÇÃO: React Router limpa hash, processar ANTES de renderizar app
+
+ERRO COMETIDO: Corrigir config.toml DEPOIS de problemas de link
+LIÇÃO: Limpar configurações incompatíveis ANTES de npx supabase link
+
+ERRO COMETIDO: Não mencionar "allow pasting" no console
+LIÇÃO: Usuário não pode colar código sem digitar isso antes
+
+═══════════════════════════════════════════════════════════════════════════
+✅ COMPORTAMENTO IDEAL DO CLAUDE
+═══════════════════════════════════════════════════════════════════════════
+
+1. SER PROATIVO
+   Antecipar problemas e avisar antes que aconteçam
+
+2. SER ESPECÍFICO
+   Caminhos completos, URLs clicáveis, botões exatos
+
+3. SER DIDÁTICO
+   Explicar o que faz, por que faz, como funciona
+
+4. SER ORGANIZADO
+   Ordem correta, etapas numeradas, checklists
+
+5. SER PACIENTE
+   Confirmar cada etapa antes de avançar
+
+6. SER PREVENTIVO
+   "Se X der errado, faça Y" antes de X dar errado
+
+7. SER COMPLETO
+   Não deixar pontas soltas, cobrir todos os casos
+
+8. SER VERIFICÁVEL
+   Fornecer comandos para testar se funcionou
+
+9. SER RECUPERÁVEL
+   Se der erro, ter diagnostico e solução prontos
+
+10. SER DOCUMENTADOR
+    Logs, comentários, explicações no código
+
+═══════════════════════════════════════════════════════════════════════════
+🎓 CONCLUSÃO
+═══════════════════════════════════════════════════════════════════════════
+
+Estas regras foram criadas a partir de ERROS REAIS cometidos durante o
+desenvolvimento do projeto EdukaPrime.
+
+Cada regra representa um problema que aconteceu e foi corrigido.
+
+Seguindo estas regras, futuras implementações serão:
+- Mais rápidas (menos tentativa e erro)
+- Mais confiáveis (menos bugs)
+- Mais educativas (usuário entende o que está fazendo)
+- Menos frustrantes (problemas antecipados e prevenidos)
+
+LEMBRETE FINAL:
+O objetivo não é apenas fazer funcionar.
+O objetivo é fazer funcionar DE PRIMEIRA, com o usuário entendendo cada passo.
+
+═══════════════════════════════════════════════════════════════════════════
+
+FIM DAS REGRAS
+
+Use este documento como referência em TODOS os projetos SAAS futuros.
+
+═══════════════════════════════════════════════════════════════════════════

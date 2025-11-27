@@ -1,9 +1,30 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git --version)",
+      "Bash(npx tsc:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(node investigate_supabase.js:*)",
+      "Bash(node investigate_more.js:*)",
+      "Bash(node find_old_badges.js:*)",
+      "Bash(del investigate_supabase.js investigate_more.js find_old_badges.js)",
+      "Bash(python -c:*)",
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)",
+      "Bash(find:*)",
+      "Bash(taskkill:*)",
+      "Bash(dir \"C:\\Users\\User\\Downloads\\AC MIGUEL\\SAAS EDUKAPRIME 2.0\\project\")",
+      "Bash(dir:*)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(del nul)",
+      "Bash(del \"dist\\img\\nul\")",
+      "Bash(del \"public\\img\\nul\")",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

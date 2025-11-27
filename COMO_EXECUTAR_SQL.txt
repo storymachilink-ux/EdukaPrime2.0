@@ -1,0 +1,118 @@
+================================================================================
+  COMO EXECUTAR O SQL NO SUPABASE - PASSO A PASSO COM IMAGENS
+================================================================================
+
+## ✅ TEM 10 ARQUIVOS SQL PRONTOS:
+
+1. sql/00_EXCLUIR_ANTIGO.sql           ← Comece por ESTE
+2. sql/01_CRIAR_PLANS_V2.sql
+3. sql/02_INSERIR_PLANOS.sql
+4. sql/03_CRIAR_PLAN_FEATURES.sql
+5. sql/04_INSERIR_FEATURES.sql
+6. sql/05_CRIAR_USER_SUBSCRIPTIONS.sql
+7. sql/06_ATUALIZAR_USERS.sql
+8. sql/07_CRIAR_FUNCOES.sql
+9. sql/08_CRIAR_VIEW.sql
+10. sql/09_VERIFICACAO_FINAL.sql       ← Termine com ESTE
+
+================================================================================
+  COMO FAZER:
+================================================================================
+
+1. ABRA O SUPABASE
+   └─ Vá em: https://app.supabase.com
+   └─ Entre na sua conta
+   └─ Clique no projeto EDUKAPRIME
+
+2. ABRA O SQL EDITOR
+   └─ No menu esquerdo, procure "SQL Editor" ou "Query"
+   └─ Clique para abrir
+
+3. COPIE E COLE (PASSO A PASSO):
+
+   PASSO 1:
+   ├─ Abra arquivo: sql/00_EXCLUIR_ANTIGO.sql
+   ├─ Copie TODO o conteúdo
+   ├─ Cole no SQL Editor do Supabase
+   ├─ Clique [Execute] (ou Ctrl+Enter)
+   └─ Se der erro "table does not exist", é OK! Significa que já tá deletado
+
+   PASSO 2:
+   ├─ Abra arquivo: sql/01_CRIAR_PLANS_V2.sql
+   ├─ Copie TODO o conteúdo
+   ├─ Cole no SQL Editor do Supabase (limpe o anterior)
+   ├─ Clique [Execute]
+   └─ Deve retornar: "CREATE TABLE" (sem erros)
+
+   PASSO 3:
+   ├─ Abra arquivo: sql/02_INSERIR_PLANOS.sql
+   ├─ Copie TODO o conteúdo
+   ├─ Cole no SQL Editor
+   ├─ Clique [Execute]
+   └─ Deve retornar: "INSERT 0 5" (5 planos inseridos)
+
+   ... e assim por diante até PASSO 10
+
+================================================================================
+  VERIFICAÇÃO RÁPIDA APÓS CADA PASSO:
+================================================================================
+
+Após PASSO 3 (02_INSERIR_PLANOS.sql):
+  Rode esta query:
+  SELECT COUNT(*) FROM plans_v2;
+
+  Deve retornar: 5
+
+Após PASSO 5 (04_INSERIR_FEATURES.sql):
+  Rode esta query:
+  SELECT COUNT(*) FROM plan_features;
+
+  Deve retornar: 30
+
+Após PASSO 10 (09_VERIFICACAO_FINAL.sql):
+  Execute a query inteira
+  Deve mostrar:
+    ✅ Tabelas existem (plans_v2, plan_features, user_subscriptions)
+    ✅ 5 planos
+    ✅ 30 features
+    ✅ View user_current_access
+    ✅ 2 funções
+
+================================================================================
+  ERROS COMUNS E SOLUÇÕES:
+================================================================================
+
+❌ ERRO: "relation 'plans_v2' does not exist"
+   SOLUÇÃO: Você não executou PASSO 1 ou PASSO 2
+   FAÇA: Comece do PASSO 1 (00_EXCLUIR_ANTIGO.sql)
+
+❌ ERRO: "duplicate key value violates unique constraint"
+   SOLUÇÃO: Você rodou PASSO 3 (02_INSERIR_PLANOS.sql) duas vezes
+   FAÇA: Comece do PASSO 1 novamente
+
+❌ ERRO: "foreign key constraint"
+   SOLUÇÃO: Você rodou os passos fora de ordem
+   FAÇA: Comece do PASSO 1 novamente
+
+❌ ERRO: "table 'user_subscriptions' does not exist"
+   SOLUÇÃO: Você pulou PASSO 6 (05_CRIAR_USER_SUBSCRIPTIONS.sql)
+   FAÇA: Rode PASSO 6
+
+================================================================================
+  RESUMO:
+================================================================================
+
+10 passos simples:
+  1. Copiar arquivo SQL
+  2. Colar no Supabase
+  3. Executar
+  4. Repetir 10 vezes
+  5. Pronto!
+
+Tempo total: ~10 minutos
+
+================================================================================
+
+Vamo nissa! Comece pelo PASSO 1! 🚀
+
+================================================================================

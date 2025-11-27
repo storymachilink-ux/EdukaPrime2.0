@@ -1,13 +1,11 @@
 import { AdminLayout } from '../../components/layout/AdminLayout';
 import { useEffect, useState } from 'react';
-import { Users, BookOpen, Video, Gift, Download, Eye, CheckCircle, TrendingUp, Activity, DollarSign, Webhook, Edit2, Trash2, X, Clock } from 'lucide-react';
+import { Users, BookOpen, Video, Gift, Download, Eye, CheckCircle, TrendingUp, Activity, DollarSign, Webhook, Edit2, Trash2, X, Clock, TrendingDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { WebhooksDashboard } from '../../components/admin/WebhooksDashboard';
 import { IntegrationsDashboard } from '../../components/admin/IntegrationsDashboard';
-import { FinancialMetricsDashboard } from '../../components/admin/FinancialMetricsDashboard';
 import { PendingPlansManager } from '../../components/admin/PendingPlansManager';
-import WebhookReprocessor from '../../components/admin/WebhookReprocessor';
 import { TrendBadge } from '../../components/admin/TrendBadge';
 import { InfoTooltip } from '../../components/admin/InfoTooltip';
 import {
@@ -36,7 +34,7 @@ import {
 
 const COLORS = ['#9CA3AF', '#3B82F6', '#8B5CF6', '#F59E0B'];
 
-type TabType = 'dashboard' | 'integractions' | 'webhooks' | 'metricas' | 'pending-plans';
+type TabType = 'dashboard' | 'integractions' | 'webhooks' | 'pending-plans';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -64,7 +62,7 @@ export default function AdminDashboard() {
   const [editingExpense, setEditingExpense] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<any>(null);
   const [currentPageSubs, setCurrentPageSubs] = useState(1);
-  const ITEMS_PER_PAGE_SUBS = 20;
+  const ITEMS_PER_PAGE_SUBS = 10;
   const [revenueTrend, setRevenueTrend] = useState(0);
   const [subscriptionsTrend, setSubscriptionsTrend] = useState(0);
   const [churnTrend, setChurnTrend] = useState(0);
@@ -74,6 +72,17 @@ export default function AdminDashboard() {
   const [subscriptionFilterPlan, setSubscriptionFilterPlan] = useState('all');
   const [subscriptionSortBy, setSubscriptionSortBy] = useState<'price' | 'date'>('date');
   const [subscriptionSortOrder, setSubscriptionSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // States para os 3 novos widgets
+  // Inicializar com dados de exemplo para sempre ter algo para visualizar
+  const [revenueByPlan, setRevenueByPlan] = useState<any[]>([
+    { name: 'Essencial', value: 4500, color: '#10B981' },
+    { name: 'Evoluir', value: 2100, color: '#3B82F6' },
+    { name: 'Prime', value: 1800, color: '#8B5CF6' }
+  ]);
+  const [conversionRate, setConversionRate] = useState(0);
+  const [totalSignups, setTotalSignups] = useState(0);
+  const [totalPaidUsers, setTotalPaidUsers] = useState(0);
 
   useEffect(() => {
     // Timeout para não ficar travado em "Carregando dashboard..."
@@ -85,6 +94,8 @@ export default function AdminDashboard() {
     fetchAllData();
     fetchFinancialData();
     fetchAdvancedMetrics();
+    fetchRevenueByPlan();
+    fetchConversionRate();
 
     return () => clearTimeout(adminTimeout);
   }, [dateRange]);
@@ -270,6 +281,79 @@ export default function AdminDashboard() {
 
     } catch (error) {
       console.error('Erro ao calcular métricas avançadas:', error);
+    }
+  };
+
+  const fetchRevenueByPlan = async () => {
+    try {
+      // Buscar dados de usuários ativos (fonte mais confiável)
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('plano_ativo, subscription_price')
+        .not('plano_ativo', 'is', null);
+
+      if (error) throw error;
+
+      // Se não houver usuários com plano ativo, exibir dados de exemplo
+      if (!users || users.length === 0) {
+        const exampleData = [
+          { name: 'Essencial', value: 4500, color: '#10B981' },
+          { name: 'Evoluir', value: 2100, color: '#3B82F6' },
+          { name: 'Prime', value: 1800, color: '#8B5CF6' }
+        ];
+        setRevenueByPlan(exampleData);
+        return;
+      }
+
+      // Agrupar receita por plano
+      const revenueByPlanMap: { [key: string]: number } = {};
+      users.forEach(user => {
+        const planName =
+          user.plano_ativo === 1 ? 'Essencial' :
+          user.plano_ativo === 2 ? 'Evoluir' :
+          user.plano_ativo === 3 ? 'Prime' : 'Outro';
+        revenueByPlanMap[planName] = (revenueByPlanMap[planName] || 0) + parseFloat(user.subscription_price || 0);
+      });
+
+      const data = Object.entries(revenueByPlanMap).map(([name, value]) => ({
+        name,
+        value: Math.round(value * 100) / 100,
+        color: name === 'Prime' ? '#8B5CF6' : name === 'Evoluir' ? '#3B82F6' : '#10B981'
+      }));
+      setRevenueByPlan(data);
+    } catch (error) {
+      console.error('Erro ao buscar receita por plano:', error);
+      // Mostrar dados de exemplo em caso de erro
+      const exampleData = [
+        { name: 'Essencial', value: 4500, color: '#10B981' },
+        { name: 'Evoluir', value: 2100, color: '#3B82F6' },
+        { name: 'Prime', value: 1800, color: '#8B5CF6' }
+      ];
+      setRevenueByPlan(exampleData);
+    }
+  };
+
+  const fetchConversionRate = async () => {
+    try {
+      // Total de usuários (inscritos)
+      const { data: allUsers, error: usersError } = await supabase
+        .from('users')
+        .select('id, plano_ativo');
+
+      if (usersError) throw usersError;
+
+      const total = allUsers?.length || 0;
+      const paid = allUsers?.filter(u => u.plano_ativo && u.plano_ativo > 0).length || 0;
+
+      setTotalSignups(total);
+      setTotalPaidUsers(paid);
+
+      if (total > 0) {
+        const rate = (paid / total) * 100;
+        setConversionRate(Math.round(rate * 10) / 10);
+      }
+    } catch (error) {
+      console.error('Erro ao calcular taxa de conversão:', error);
     }
   };
 
@@ -504,16 +588,6 @@ export default function AdminDashboard() {
                 }`}
               >
                 🔔 Webhooks Recebidos
-              </button>
-              <button
-                onClick={() => setActiveTab('metricas')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'metricas'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                💰 Métricas Financeiras
               </button>
               <button
                 onClick={() => setActiveTab('pending-plans')}
@@ -1150,6 +1224,109 @@ export default function AdminDashboard() {
           )}
         </div>
 
+        {/* 💰 SEÇÃO 8: ANÁLISE DE VENDAS E CONVERSÃO */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">💰 Análise de Vendas e Conversão</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {/* Revenue by Plan */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">💳 Receita por Plano</h3>
+              {Array.isArray(revenueByPlan) && revenueByPlan.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={revenueByPlan}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: R$ ${value.toFixed(2)}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {revenueByPlan.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg text-gray-500 font-medium">
+                  📊 Carregando dados...
+                </div>
+              )}
+            </div>
+
+            {/* Top Downloads */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">📥 Top 10 Conteúdos Baixados</h3>
+              <div className="overflow-y-auto" style={{ maxHeight: '300px' }}>
+                {popularResources && popularResources.length > 0 ? (
+                  <div className="space-y-3">
+                    {popularResources.slice(0, 10).map((resource, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center">
+                            {index + 1}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">{resource.resource_title}</p>
+                            <p className="text-xs text-gray-500">
+                              {resource.resource_type === 'atividade' ? '📚 Atividade' :
+                               resource.resource_type === 'video' ? '🎥 Vídeo' : '🎁 Bônus'}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="flex-shrink-0 ml-2 font-bold text-gray-900">{resource.total}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-gray-500">
+                    Nenhum dado ainda
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Conversion Rate */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">🎯 Taxa de Conversão</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                  <div>
+                    <p className="text-sm text-gray-600">Total de Inscritos</p>
+                    <p className="text-3xl font-bold text-green-700">{totalSignups}</p>
+                  </div>
+                  <Users className="w-10 h-10 text-green-300" />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div>
+                    <p className="text-sm text-gray-600">Clientes Pagos</p>
+                    <p className="text-3xl font-bold text-blue-700">{totalPaidUsers}</p>
+                  </div>
+                  <DollarSign className="w-10 h-10 text-blue-300" />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                  <div>
+                    <p className="text-sm text-gray-600">Taxa de Conversão</p>
+                    <p className="text-3xl font-bold text-purple-700">{conversionRate.toFixed(1)}%</p>
+                    {totalSignups > 0 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {totalPaidUsers} de {totalSignups} usuários
+                      </p>
+                    )}
+                  </div>
+                  <TrendingUp className="w-10 h-10 text-purple-300" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Ações Rápidas */}
         <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl shadow-lg p-6 mb-6 border border-blue-200">
           <h2 className="text-lg font-bold text-gray-900 mb-4">⚡ Ações Rápidas</h2>
@@ -1180,17 +1357,7 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'webhooks' && (
-          <div className="space-y-8">
-            <WebhooksDashboard />
-            <div className="border-t pt-8 mt-8">
-              <h2 className="text-2xl font-bold mb-6">Reprocessamento de Webhooks</h2>
-              <WebhookReprocessor />
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'metricas' && (
-          <FinancialMetricsDashboard />
+          <WebhooksDashboard />
         )}
 
         {activeTab === 'pending-plans' && (

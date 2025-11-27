@@ -1,0 +1,487 @@
+===========================================
+EDUKAPRIME - TEXTOS E COPY DAS ÁREAS INTERNAS
+===========================================
+
+Este arquivo contém todos os textos, títulos, descrições e mensagens
+das áreas internas da plataforma para você usar no futuro.
+
+===========================================
+📊 1. DASHBOARD (Página Inicial Interna)
+===========================================
+
+TÍTULOS E CABEÇALHOS:
+- "Dashboard"
+- "Acompanhe seu progresso e acesse seus conteúdos"
+
+INDICADOR ADMIN:
+- "Modo Administrador Ativo"
+- "Simulando: [nome do plano]"
+- "Use o dropdown 'Simular Plano' no header"
+
+ESTATÍSTICAS (Cards):
+Card 1:
+- Título: "Novos Conteúdos"
+- Valor demo: "0" | Valor ativo: "3"
+- Subtítulo: "nesta semana"
+
+Card 2:
+- Título: "Atividades Concluídas"
+- Valor demo: "0/0" | Valor ativo: "5/20"
+- Subtítulo: "este mês"
+
+Card 3:
+- Título: "Progresso Geral"
+- Valor demo: "0%" | Valor ativo: "75%"
+- Subtítulo: "completado"
+
+AÇÃO RÁPIDA:
+- Título: "Ação Rápida"
+- Demo: "Faça upgrade para começar a explorar nossos conteúdos"
+- Ativo: "Continue de onde parou ou explore novos conteúdos"
+- Botão demo: "🔒 Adquira um plano para começar" | "Progresso: 0% - Bloqueado"
+- Botão ativo: "Continuar Atividade de Português" | "Progresso: 60%"
+
+NOTIFICAÇÕES RECENTES:
+- Título: "Notificações Recentes"
+- Demo:
+  * "Seja bem-vindo(a) ao EdukaPrime!"
+  * "Faça upgrade para acessar atividades"
+  * "Explore nossos planos de assinatura"
+  * "Entre em contato para suporte"
+- Ativo:
+  * "Completou 'Atividades de Matemática Básica'"
+  * "Visualizou 'Vídeo: Técnicas de Ensino'"
+  * "Baixou 'Bônus: Planejamento de Aulas'"
+  * "Acessou suporte pedagógico"
+
+GERENCIAR ACESSOS DOS PLANOS (Admin):
+- Título: "Gerenciar Acessos dos Planos"
+- Funcionalidades:
+  * "📚 Atividades" (obrigatório)
+  * "🎥 Vídeos"
+  * "🎁 Bônus"
+  * "👑 Suporte VIP"
+- Planos:
+  * "📝 ESSENCIAL"
+  * "📈 EVOLUIR"
+  * "👑 PRIME"
+- Botões:
+  * "Resetar"
+  * "Salvar Alterações"
+- Nota informativa:
+  "ℹ️ Hierarquia: Prime ≥ Evoluir ≥ Essencial. Ao desmarcar uma funcionalidade em um plano superior, ela será removida automaticamente dos planos inferiores.
+  * Atividades são obrigatórias para todos os planos."
+
+MENSAGENS DE TOAST:
+- "✅ Configurações salvas com sucesso!"
+- "🔄 Configurações resetadas para o padrão!"
+- "❌ Atividades são obrigatórias para todos os planos!"
+
+===========================================
+📚 2. ATIVIDADES
+===========================================
+
+TÍTULOS E CABEÇALHOS:
+- "Acervo de atividades"
+- "Explore nossa biblioteca de atividades educacionais"
+
+FILTROS:
+- "Todos"
+- "Plano Essencial"
+- [Categorias dinâmicas do banco]
+
+BANNER UPGRADE (Usuário Demo):
+- Título: "Adquira um Plano de acesso para liberar as atividades"
+- Subtítulo: "Escolha o plano ideal e tenha acesso completo ao nosso acervo de mais de 8.000 atividades educacionais"
+
+PLANOS (Cards):
+Plano 1 - Essencial:
+- Nome: "ESSENCIAL"
+- Preço: "R$ 9,99/mês"
+- Botão: "Escolher ESSENCIAL"
+
+Plano 2 - Evoluir:
+- Nome: "EVOLUIR"
+- Preço: "R$ 27,99/mês"
+- Badge: "⭐ MAIS POPULAR"
+- Botão: "Escolher EVOLUIR"
+
+Plano 3 - Prime:
+- Nome: "PRIME"
+- Preço: "R$ 49,99/mês"
+- Botão: "Escolher PRIME"
+
+FEATURES DOS PLANOS (exemplo):
+- "✅ Acesso a 4.000+ atividades BNCC"
+- "✅ Filtros por idade e disciplina"
+- "✅ Download em PDF editável"
+- "✅ Acesso a vídeos tutoriais" (Evoluir/Prime)
+- "✅ Materiais bônus exclusivos" (Prime)
+- "✅ Suporte VIP prioritário" (Prime)
+
+CARDS DE ATIVIDADES:
+- Botão download (usuário com acesso): "Baixar Agora" | "Baixar"
+- Botão bloqueado (sem acesso): "Upgrade"
+- Botão visualizar: [ícone de olho]
+
+MODAL DE ADICIONAR/EDITAR (Admin):
+- Título (novo): "Adicionar Nova Atividade"
+- Título (editar): "Editar Atividade"
+- Campos:
+  * "📝 Título *"
+  * "📝 Descrição *"
+  * "🖼️ URL da Imagem"
+  * "🔗 Link de Download *"
+  * "👶 Faixa Etária *"
+  * "📁 Categoria *"
+  * "🏷️ Nicho/Subtema"
+  * "🔒 Planos com Acesso * (invisível para usuários)"
+- Opções faixa etária: "Ex: 5 a 8 anos"
+- Opção criar nova: "+ Adicionar nova faixa etária" | "+ Criar nova categoria"
+- Planos checkbox: "Essencial" | "Evoluir" | "Prime"
+- Botões: "Cancelar" | "Salvar Alterações" | "Adicionar Atividade"
+
+ESTADOS:
+- Loading: "Carregando atividades..."
+- Erro: "Erro ao carregar atividades"
+
+===========================================
+🎥 3. VÍDEOS
+===========================================
+
+TÍTULOS E CABEÇALHOS:
+- "Vídeos"
+- "Aprenda com nossos vídeos educacionais especializados"
+
+ACESSO RESTRITO (Usuário sem permissão):
+- Título: "Acesso Restrito"
+- Mensagem: "Esta área é exclusiva para assinantes dos planos Evoluir e Prime"
+- Botão: "🚀 Liberar Acesso"
+
+CARDS DE VÍDEO:
+- Duração: "⏱️ [tempo]"
+- Categoria: "📂 [categoria]"
+- Botão play: [ícone de play no centro da thumbnail]
+
+MODAL DE ADICIONAR/EDITAR (Admin):
+- Título (novo): "Adicionar Novo Vídeo"
+- Título (editar): "Editar Vídeo"
+- Campos:
+  * "Título *"
+  * "Duração" (placeholder: "Ex: 15:30")
+  * "Categoria" (placeholder: "Ex: Matemática")
+  * "Descrição *"
+  * "URL do YouTube *" (placeholder: "https://www.youtube.com/watch?v=...")
+  * "URL da Thumbnail"
+  * "Disponível para os planos:"
+    - "📝 Essencial"
+    - "📈 Evoluir"
+    - "👑 Prime"
+- Botões: "Cancelar" | "Deletar" | "Salvar Alterações" | "Adicionar Vídeo"
+
+ESTADOS:
+- Loading: "Carregando vídeos..."
+- Erro: "Erro ao carregar vídeos"
+
+===========================================
+🎁 4. BÔNUS
+===========================================
+
+TÍTULOS E CABEÇALHOS:
+- "Bônus"
+- "Materiais extras para enriquecer sua prática pedagógica"
+
+ACESSO RESTRITO (Usuário sem permissão):
+- Título: "Acesso Restrito"
+- Mensagem: "Esta área é exclusiva para assinantes dos planos Evoluir e Prime"
+- Botão: "🚀 Liberar Acesso"
+
+CARDS DE BÔNUS:
+- Badge: [categoria]
+- Botão: "Baixar Arquivo"
+
+MODAL DE ADICIONAR/EDITAR (Admin):
+- Título (novo): "Adicionar Novo Material Bônus"
+- Título (editar): "Editar Material Bônus"
+- Campos:
+  * "Título *"
+  * "Descrição *"
+  * "Categoria *" (placeholder: "Ex: E-book/PDF, Template/Atividade")
+  * "URL do Ícone" (placeholder: "https://exemplo.com/icone.jpg")
+  * "Link de Download *" (placeholder: "Link do Google Drive ou outro")
+  * "Planos com Acesso *"
+    - "📝 Essencial"
+    - "📈 Evoluir"
+    - "👑 Prime"
+- Botões: "Cancelar" | "Deletar" | "Salvar Alterações" | "Adicionar Material"
+
+ESTADOS:
+- Loading: "Carregando materiais bônus..."
+- Erro: "Erro ao carregar materiais bônus"
+
+===========================================
+💬 5. SUPORTE
+===========================================
+
+TÍTULOS E CABEÇALHOS:
+- "Suporte"
+- "Estamos aqui para ajudar você a aproveitar ao máximo o EdukaPrime"
+
+OPÇÕES DE CONTATO:
+
+Card 1 - E-mail:
+- Título: "E-mail"
+- Descrição: "storymachilink@gmail.com"
+- Botão: "Enviar E-mail"
+
+Card 2 - Telefone:
+- Título: "Telefone"
+- Descrição: "(67) 99309-1209"
+- Botão: "Ligar Agora"
+
+PERGUNTAS FREQUENTES:
+- Título: "Perguntas Frequentes"
+
+FAQ 1:
+- Pergunta: "Como posso cancelar minha assinatura?"
+- Resposta: "Entre em contato via WhatsApp que cancelamos sua assinatura sem perguntas."
+
+FAQ 2:
+- Pergunta: "Posso usar as atividades impressas comercialmente?"
+- Resposta: "Pode usar comercialmente, desde que não as venda online."
+
+FAQ 3:
+- Pergunta: "Como baixo os materiais em formato WORD?"
+- Resposta: "Os materiais são compatíveis com Word — basta abrir no Word (ou usar um conversor de formato). Se precisar de ajuda para personalizar use o Suporte VIP"
+
+FAQ 4:
+- Pergunta: "Existe limite de downloads?"
+- Resposta: "Não há limite para os usuários baixarem as atividades"
+
+===========================================
+⚙️ 6. CONFIGURAÇÕES
+===========================================
+
+TÍTULOS E CABEÇALHOS:
+- "Configurações"
+- "Personalize sua experiência no EdukaPrime"
+
+PAINEL ADMINISTRATIVO (Admin Only):
+- Título: "Painel Administrativo"
+- Badge: "Acesso Restrito"
+
+Cards Admin:
+Card 1 - Usuários:
+- Título: "Usuários"
+- Descrição: "Gerenciar usuários e planos"
+- Botão: "Gerenciar Usuários"
+
+Card 2 - Conteúdo:
+- Título: "Conteúdo"
+- Descrição: "CRUD de atividades, vídeos e bônus"
+- Botão: "Gerenciar Conteúdo"
+
+Card 3 - Ações Rápidas:
+- Título: "Ações Rápidas"
+- Botões:
+  * "+ Adicionar Atividade"
+  * "+ Adicionar Vídeo"
+  * "+ Adicionar Bônus"
+
+Card 4 - Notificações:
+- Título: "Notificações"
+- Descrição: "Enviar notificações para usuários"
+- Botão: "Gerenciar Notificações"
+
+Estatísticas Rápidas:
+- "Atividades"
+- "Vídeos"
+- "Bônus"
+- "Usuários"
+
+SEÇÃO NOTIFICAÇÕES:
+- Título: "Notificações"
+- Descrição: "Escolha como deseja ser avisado sobre novidades e atualizações."
+- Opções:
+  * "📧 E-mail" (marcado por padrão)
+  * "🔔 Push (navegador)"
+  * "🔔 Novidades e promoções" (marcado por padrão)
+
+SEÇÃO GERENCIAR PLANO:
+- Título: "Gerenciar Plano"
+- Descrição: "Alterar ou cancelar sua assinatura."
+- Badge plano atual: "Plano atual: [nome]"
+- Botão principal: "⚡ Escolher Novo Plano"
+
+Cards de Upgrade:
+- Badge: "Upgrade disponível"
+- Planos: "Plano Essencial" | "Plano Evoluir" | "Plano Prime"
+- Preços: "R$ 9,99/mês" | "R$ 27,99/mês" | "R$ 49,99/mês"
+- Botão: "Migrar para [plano]"
+- Mensagem plano máximo: "Você já está no plano mais completo! 🎉"
+
+SEÇÃO AJUDA:
+- Título: "Precisa de Ajuda?"
+- Descrição: "Nossa equipe de suporte está sempre pronta para ajudar você."
+- Botões:
+  * "Contatar Suporte"
+  * "Ver FAQ"
+
+SEÇÃO SAIR:
+- Título: "Sair da Conta"
+- Descrição: "Fazer logout da sua sessão atual."
+- Botão: "Sair"
+
+MODAL GESTÃO DE USUÁRIOS (Admin):
+- Título: "Gestão de Usuários"
+- Colunas da tabela:
+  * "Email"
+  * "Plano Atual"
+  * "Admin"
+  * "Cadastro"
+  * "Ações"
+- Opções de plano (dropdown):
+  * "Demo"
+  * "Essencial"
+  * "Evoluir"
+  * "Prime"
+  * "Admin"
+- Estados:
+  * Loading: "Carregando usuários..."
+  * Erro: "Erro ao carregar usuários:" + botão "Tentar Novamente"
+  * Vazio: "Nenhum usuário encontrado"
+
+MODAL GESTÃO DE CONTEÚDO (Admin):
+- Título: "Gestão de Conteúdo"
+- Abas:
+  * "📚 Atividades"
+  * "🎥 Vídeos"
+  * "🎁 Bônus"
+- Conteúdo de cada aba:
+  * Título: "Gestão de [tipo]"
+  * Descrição: "Aqui você pode gerenciar todos(as) [tipo] da plataforma"
+  * Botão: "+ Adicionar Nov[o/a] [tipo]"
+
+MODAL GESTÃO DE NOTIFICAÇÕES (Admin):
+- Título: "Gerenciar Notificações"
+- Campos:
+  * "Título da Notificação *" (max 100 caracteres)
+    Placeholder: "Ex: 🎉 Novas atividades adicionadas!"
+  * "Mensagem *" (max 500 caracteres)
+    Placeholder: "Descreva a notificação em detalhes..."
+  * "Tipo da Notificação"
+    - "🔵 Informação"
+    - "🟢 Sucesso"
+    - "🟡 Aviso"
+    - "🔴 Erro"
+  * "Planos que receberão a notificação *"
+    - "Demo/Gratuito"
+    - "Essencial"
+    - "Evoluir"
+    - "Prime"
+    - "Admin"
+- Botões auxiliares:
+  * "Selecionar todos"
+  * "Desselecionar todos"
+- Mensagem validação: "Selecione pelo menos um plano"
+- Botões ação:
+  * "Cancelar"
+  * "Enviar Notificação" | "Enviando..."
+- Mensagem sucesso: "Notificação criada com sucesso!"
+
+===========================================
+💳 7. INFORMAÇÕES DE PLANOS
+===========================================
+
+PLANO DEMO/GRATUITO:
+- Nome: "Demo/Gratuito"
+- Preço: "Gratuito (Funções bloqueadas)"
+- Cor: Vermelho
+
+PLANO ESSENCIAL:
+- Nome: "Plano Essencial"
+- Preço: "R$ 9,99/mês"
+- Cor: Cinza
+- Ícone: 📝
+
+PLANO EVOLUIR:
+- Nome: "Plano Evoluir"
+- Preço: "R$ 27,99/mês"
+- Cor: Azul
+- Ícone: 📈
+- Badge: "MAIS POPULAR"
+
+PLANO PRIME:
+- Nome: "Plano Prime"
+- Preço: "R$ 49,99/mês"
+- Cor: Roxo
+- Ícone: 👑
+
+PLANO ADMIN:
+- Nome: "Admin"
+- Preço: "Todas as funções liberadas"
+- Cor: Verde
+- Ícone: 👑
+
+===========================================
+🎨 8. ELEMENTOS VISUAIS
+===========================================
+
+IMAGENS UTILIZADAS:
+- /bemvindo.png - Dashboard (banner de boas-vindas)
+- /atividadeshead.png - Header da página de Atividades
+- /videos.png - Header da página de Vídeos
+- /bonushead.png - Header da página de Bônus
+- /suporte.png - Header da página de Suporte
+- /logohorizontal.png - Logo horizontal
+- /icon.jpg - Ícone padrão
+
+ÍCONES LUCIDE USADOS:
+- TrendingUp, BookOpen, Bell, Award, Crown, Shield
+- Settings, RotateCcw, Save, Check, Download, Plus, Edit
+- Loader2, AlertCircle, Mail, Phone, HelpCircle
+- ChevronDown, ChevronRight, LogOut, ArrowUpRight
+- Lock, Eye, Pencil, Star, Zap, Users, Database
+- BarChart3, FileText, Video, Gift, BellRing, Info
+
+ANIMAÇÕES:
+- Float: Movimento de flutuação vertical (0px → -10px)
+- Slide-in: Deslizar da direita com fade-in
+- Spin: Rotação contínua (loading)
+
+===========================================
+📝 9. MENSAGENS DO SISTEMA
+===========================================
+
+ERROS:
+- "Erro ao carregar atividades"
+- "Erro ao carregar vídeos"
+- "Erro ao carregar materiais bônus"
+- "Erro ao carregar usuários:"
+- "Erro ao atualizar plano:"
+- "Erro ao salvar vídeo. Tente novamente."
+- "Erro ao deletar vídeo. Tente novamente."
+- "Erro ao salvar bônus. Tente novamente."
+- "Erro ao deletar bônus. Tente novamente."
+- "Erro inesperado ao criar notificação"
+- "Por favor, preencha todos os campos obrigatórios."
+
+SUCESSO:
+- "Notificação criada com sucesso!"
+- "Configurações salvas com sucesso!"
+
+VALIDAÇÕES:
+- "Preencha todos os campos obrigatórios"
+- "Selecione pelo menos um plano"
+
+CONFIRMAÇÕES:
+- "Tem certeza que deseja deletar este vídeo?"
+- "Tem certeza que deseja deletar este material bônus?"
+- "Tem certeza que deseja resetar para as configurações padrão?"
+
+===========================================
+FIM DO DOCUMENTO
+===========================================
+
+Este arquivo contém todos os textos da área interna.
+Use como referência ao reconstruir a aplicação com Supabase.

@@ -52,7 +52,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const cachedAdminStatus = localStorage.getItem(`admin_status_${user.id}`);
       if (cachedAdminStatus === 'true') {
-        console.log('💾 Usando status de admin do localStorage (query falhou, mas mantendo acesso)');
         return true;
       }
     } catch (e) {
@@ -61,14 +60,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // 4. Se já foi admin antes (in-memory cache), manter status
     if (lastKnownStatus === true) {
-      console.log('⚠️ Usando status de admin em cache in-memory (query falhou, mas mantendo acesso)');
       return true;
     }
 
     // 5. Email admin (fallback final para email específico)
     const adminEmails = ['admin@edukaprime.com', 'miguel@edukaprime.com', 'joia@hotmail.com'];
     if (user.email && adminEmails.includes(user.email.toLowerCase())) {
-      console.log('✅ Usuário encontrado na admin email list');
       return true;
     }
 
@@ -94,20 +91,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase.rpc('get_user_subscriptions', { p_user_id: userId });
 
       if (error) {
-        console.warn('⚠️ Erro ao buscar subscriptions via RPC, usando fallback:', error.message);
         return fallbackPlanId;
       }
 
       if (data && data.length > 0) {
-        const planId = data[0].plan_id;
-        console.log(`✅ Plan ID carregado de subscription: ${planId}`);
-        return planId;
+        return data[0].plan_id;
       }
 
-      console.log(`ℹ️ Nenhuma subscription ativa encontrada, usando fallback: ${fallbackPlanId}`);
       return fallbackPlanId;
     } catch (error) {
-      console.error('❌ Erro ao buscar plan_id das subscriptions:', error);
       return fallbackPlanId;
     }
   };
@@ -115,13 +107,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const createUserProfile = async (user: User, forceRefresh: boolean = false) => {
     // Se já está buscando perfil e não é refresh forçado, pular
     if (fetchingProfile && !forceRefresh) {
-      console.log('⏭️ Já está buscando perfil, pulando...');
       return;
     }
 
     try {
       setFetchingProfile(true);
-      console.log('👤 Buscando perfil para:', user.email);
 
       // Query com timeout de 5 segundos (força resposta)
       const queryPromise = supabase
@@ -140,17 +130,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data = result?.data;
         error = result?.error;
       } catch (timeoutError) {
-        console.error('❌ Query travou no Supabase:', timeoutError);
         error = timeoutError;
         data = null;
       }
 
-      console.log('👤 Query respondeu. Data:', !!data, 'Error:', !!error);
-
       if (error) {
-        console.warn('⚠️ Erro ao buscar perfil:', error.message);
-        console.log('🔄 Tentando query alternativa mais simples...');
-
         // Tentar query ainda mais simples (só ID e email)
         try {
           const { data: simpleData, error: simpleError } = await Promise.race([
@@ -165,11 +149,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           ]) as any;
 
           if (simpleData) {
-            console.log('✅ Query simples funcionou! Usando dados:', simpleData);
             setProfile({
               id: simpleData.id,
               email: simpleData.email,
-              nome: simpleData.nome || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
+              nome: simpleData.nome || 'Usuário',
               active_plan_id: 0,
               has_lifetime_access: false,
               is_admin: simpleData.is_admin || false,
@@ -178,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
         } catch (fallbackError) {
-          console.warn('⚠️ Query simples também falhou:', fallbackError);
+          // Fallback silencioso
         }
 
         // Criar perfil básico mesmo se falhar
@@ -189,13 +172,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const basicProfile: UserProfile = {
           id: user.id,
           email: user.email || '',
-          nome: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
+          nome: user.email?.split('@')[0] || 'Usuário',
           active_plan_id: 0,
           has_lifetime_access: false,
           is_admin: adminStatus,
           avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
         };
-        console.log('⚠️ Usando perfil básico com is_admin:', adminStatus, '(localStorage/cache/jwt/email fallback)');
         setProfile(basicProfile);
 
         // Cachear o status determinado
@@ -207,11 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
-        console.log('✅ Perfil encontrado em banco');
         const existingProfile = data as UserProfile;
-        console.log('   Email:', existingProfile.email);
-        console.log('   Nome:', existingProfile.nome);
-        console.log('   Is Admin:', existingProfile.is_admin);
 
         // Garantir que avatar_url é preservado do user metadata se não tiver no banco
         const profileWithAvatar: UserProfile = {
@@ -224,11 +202,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         cacheAdminStatus(user.id, existingProfile.is_admin);
         setLastKnownAdminStatus(prev => new Map(prev).set(user.id, existingProfile.is_admin));
       } else {
-        console.log('➕ Criando novo perfil...');
         const newProfile: UserProfile = {
           id: user.id,
           email: user.email || '',
-          nome: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
+          nome: user.email?.split('@')[0] || 'Usuário',
           active_plan_id: 0,
           has_lifetime_access: false,
           is_admin: false,
@@ -236,10 +213,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setProfile(newProfile);
         cacheAdminStatus(user.id, false);
-        console.log('✅ Perfil criado');
       }
     } catch (error) {
-      console.error('❌ Erro ao buscar/criar perfil:', error);
       // Criar perfil mínimo para não travar
       const lastKnownAdmin = lastKnownAdminStatus.get(user.id);
       const adminStatus = isUserAdmin(user, lastKnownAdmin);
@@ -253,7 +228,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         is_admin: adminStatus,
         avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
       };
-      console.log('⚠️ Usando fallback final com is_admin:', adminStatus, '(localStorage/cache/jwt/email)');
       setProfile(fallbackProfile);
 
       // Cachear se conseguimos determinar admin
@@ -274,23 +248,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Timeout obrigatório para nunca ficar em loading infinito
     const loadingTimeout = setTimeout(() => {
-      console.warn('⚠️ Loading timeout - forçando saída do loading');
       setLoading(false);
     }, 12000); // 12 segundos máximo (aumentado de 6s)
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state changed:', event, 'Session:', session?.user?.email);
-
       // ⚠️ GUARD: Ignorar eventos duplicados para evitar logout acidental
       // Se o mesmo usuário já está processando, não processar novamente
       if (isProcessing && lastProcessedUserId === session?.user?.id) {
-        console.log('⏭️ Ignorando evento duplicado para mesmo usuário');
         return;
       }
 
       // Se não há sessão e já processamos logout, não processar novamente
       if (!session?.user && !lastProcessedUserId) {
-        console.log('⏭️ Ignorando logout duplicado');
         return;
       }
 
@@ -376,7 +345,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(null);
         }
       } catch (error) {
-        console.error('❌ Erro ao processar auth:', error);
+        // Silent fail - perfil fallback já criado em createUserProfile
       } finally {
         isProcessing = false;
         // Sempre sair do loading na primeira vez
@@ -396,7 +365,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     const redirectUrl = window.location.origin;
-    console.log('🔵 Iniciando Google OAuth com redirect:', redirectUrl);
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -409,7 +377,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    console.log('🔵 Resposta OAuth:', { data, error });
     if (error) throw error;
   };
 
@@ -438,11 +405,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data.user) {
       await createUserProfile(data.user);
 
-      // ═══════════════════════════════════════════════════════════════════════════
-      // NOVO: Ativar pending_plans se houver planos pagos aguardando
-      // ═══════════════════════════════════════════════════════════════════════════
-      console.log('⏳ Verificando planos pendentes para:', data.user.email);
-
       try {
         const { data: pendingResult, error: pendingError } = await supabase.rpc(
           'activate_pending_plans',
@@ -452,27 +414,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         );
 
-        if (pendingError) {
-          console.warn('⚠️ Erro ao ativar planos pendentes:', pendingError.message);
-        } else if (pendingResult && pendingResult.length > 0) {
-          const { activated_count, plan_id } = pendingResult[0];
+        if (!pendingError && pendingResult && pendingResult.length > 0) {
+          const { activated_count } = pendingResult[0];
           if (activated_count > 0) {
-            console.log(`✅ ${activated_count} plano(s) ativado(s) automaticamente! Plan ID: ${plan_id}`);
-            // Recarregar perfil com novo plano
             await createUserProfile(data.user, true);
           }
         }
       } catch (error) {
-        console.error('❌ Erro ao processar pending_plans:', error);
-        // Não lançar erro - usuário foi criado com sucesso mesmo se pending_plans falhar
+        // Silent fail
       }
 
-      // ═══════════════════════════════════════════════════════════════════════════
-      // NOVO: Verificar planos expirados no signup (lazy expiration)
-      // ═══════════════════════════════════════════════════════════════════════════
       try {
-        console.log('⏳ Verificando planos expirados no signup...');
-
         const { data: expireResult, error: expireError } = await supabase.rpc(
           'expire_plans_if_needed',
           {
@@ -480,19 +432,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         );
 
-        if (expireError) {
-          console.warn('⚠️ Erro ao verificar expiração:', expireError.message);
-        } else if (expireResult && expireResult.length > 0) {
-          const { expired_count, new_plan_id } = expireResult[0];
+        if (!expireError && expireResult && expireResult.length > 0) {
+          const { expired_count } = expireResult[0];
           if (expired_count > 0) {
-            console.log(`✅ ${expired_count} plano(s) expirado(s)! Novo plano: ${new_plan_id}`);
-            // Recarregar perfil
             await createUserProfile(data.user, true);
           }
         }
       } catch (error) {
-        console.error('❌ Erro ao processar expiração:', error);
-        // Não lançar erro
+        // Silent fail
       }
     }
   };
@@ -524,16 +471,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       return data || false;
     } catch (error) {
-      console.error(`❌ Erro ao verificar acesso a ${feature}:`, error);
       return false;
     }
   };
 
   const refreshProfile = async () => {
     if (user) {
-      console.log('🔄 Refreshing profile...');
       await createUserProfile(user, true); // forceRefresh = true
-      console.log('✅ Profile refreshed');
     }
   };
 
