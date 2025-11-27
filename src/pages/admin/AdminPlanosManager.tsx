@@ -307,8 +307,8 @@ export default function AdminPlanosManager() {
   const handleDeletePlan = async (plan: Plan) => {
     const confirmDelete = window.confirm(
       `⚠️ Tem certeza que deseja deletar o plano "${plan.display_name}"?\n\n` +
-      `Usuários com subscriptions ativas continuarão tendo acesso.\n` +
-      `Essa ação é irreversível!`
+      `Isso removerá as subscriptions dos usuários.\n` +
+      `Essa ação é IRREVERSÍVEL!`
     );
 
     if (!confirmDelete) return;
@@ -316,12 +316,38 @@ export default function AdminPlanosManager() {
     try {
       setSaving(true);
 
-      const { error } = await supabase
+      // PASSO 1: Remover todas as subscriptions vinculadas a este plano
+      console.log(`🔄 Removendo subscriptions do plano ${plan.id}...`);
+      const { error: subscriptionError } = await supabase
+        .from('user_subscriptions')
+        .delete()
+        .eq('plan_id', plan.id);
+
+      if (subscriptionError) {
+        console.warn('⚠️ Aviso ao remover subscriptions:', subscriptionError);
+        // Continua mesmo com aviso (pode ser que não tenha subscriptions)
+      } else {
+        console.log('✅ Subscriptions removidas');
+      }
+
+      // PASSO 2: Remover items associados (plan_atividades, plan_videos, etc)
+      const itemTypes = ['plan_atividades', 'plan_videos', 'plan_bonus', 'plan_papercrafts'];
+      for (const tableName of itemTypes) {
+        await supabase
+          .from(tableName)
+          .delete()
+          .eq('plan_id', plan.id);
+      }
+      console.log('✅ Items removidos');
+
+      // PASSO 3: Deletar o plano
+      console.log(`🗑️ Deletando plano ${plan.id}...`);
+      const { error: planError } = await supabase
         .from('plans_v2')
         .delete()
         .eq('id', plan.id);
 
-      if (error) throw error;
+      if (planError) throw planError;
 
       setMessage({ text: `✅ Plano "${plan.display_name}" deletado com sucesso!`, type: 'success' });
       setTimeout(() => setMessage(null), 3000);
