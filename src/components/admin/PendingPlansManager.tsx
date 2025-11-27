@@ -50,44 +50,15 @@ export const PendingPlansManager: React.FC = () => {
     loadPendingPlans()
   }, [])
 
-  const extractProductInfo = (plan: PendingPlan): ProductInfo => {
-    const info: ProductInfo = {}
-
-    // Se temos product_id_gateway, mostrar
-    if (plan.product_id_gateway) {
-      info.code = plan.product_id_gateway
-    }
-
-    // Se temos raw_payload do webhook, extrair informações
-    if (plan.raw_payload) {
-      const payload = plan.raw_payload
-
-      // VEGA: procurar em items ou product
-      if (payload.items && Array.isArray(payload.items) && payload.items.length > 0) {
-        const item = payload.items[0]
-        info.title = item.name || item.title || item.description
-        info.code = info.code || item.id || item.code
-      }
-
-      // Qualquer plataforma: procurar product_name, product_title
-      if (payload.product_name) info.title = payload.product_name
-      if (payload.product_title) info.title = payload.product_title
-      if (payload.product_description) info.description = payload.product_description
-
-      // Preço: procurar em várias formas
-      if (payload.unit_amount) info.price = payload.unit_amount / 100 // centavos
-      if (payload.price) info.price = payload.price
-    }
-
-    return info
-  }
+  // ✨ REMOVIDO: extractProductInfo agora usa product_id e product_title do banco de dados
 
   const loadPendingPlans = async () => {
     try {
       setLoading(true)
+      // ✨ ATUALIZADO: Incluir product_id e product_title do webhook_logs
       const { data, error } = await supabase
         .from('pending_plans')
-        .select('*, webhook_logs(raw_payload)')
+        .select('*, webhook_logs(product_id, product_title, raw_payload)')
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -96,25 +67,7 @@ export const PendingPlansManager: React.FC = () => {
         return
       }
 
-      let plansWithPayloads = (data || []) as any[]
-
-      // Buscar webhooks para enriquecer com informações de produtos
-      const plansWithWebhookId = plansWithPayloads.filter(p => p.webhook_id)
-      if (plansWithWebhookId.length > 0) {
-        const webhookIds = plansWithWebhookId.map(p => p.webhook_id).filter(Boolean)
-        const { data: webhooks } = await supabase
-          .from('webhook_logs')
-          .select('id, raw_payload')
-          .in('id', webhookIds)
-
-        const webhookMap = new Map(webhooks?.map(w => [w.id, w.raw_payload]) || [])
-        plansWithPayloads = plansWithPayloads.map(p => ({
-          ...p,
-          raw_payload: webhookMap.get(p.webhook_id)
-        }))
-      }
-
-      setPendingPlans(plansWithPayloads)
+      setPendingPlans((data || []) as any[])
       setSelectedIds([])
 
       // Calcular estatísticas
@@ -446,21 +399,21 @@ export const PendingPlansManager: React.FC = () => {
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {(() => {
-                          const productInfo = extractProductInfo(plan)
-                          if (productInfo.code || productInfo.title) {
-                            return (
-                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold border border-purple-300 whitespace-nowrap">
-                                {productInfo.title || productInfo.code || 'Produto'}
-                                {productInfo.price && ` (R$ ${productInfo.price.toFixed(2)})`}
-                              </span>
-                            )
-                          }
-                          return <span className="text-gray-400 text-xs">-</span>
-                        })()}
-                      </div>
+                    <td className="px-4 py-3 text-sm">
+                      {plan.webhook_logs?.product_id ? (
+                        <div className="space-y-1">
+                          <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold border border-purple-300">
+                            📦 {plan.webhook_logs.product_id}
+                          </span>
+                          {plan.webhook_logs.product_title && (
+                            <div className="text-xs text-gray-600 truncate max-w-xs">
+                              {plan.webhook_logs.product_title}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs">Sem produto</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
