@@ -305,6 +305,16 @@ export default function AdminPlanosManager() {
   };
 
   const handleDeletePlan = async (plan: Plan) => {
+    // Proteger o plano Gratuito (ID=0) de ser deletado
+    if (plan.id === 0) {
+      setMessage({
+        text: '❌ Não é permitido deletar o plano Gratuito (ID=0). Este é o plano padrão do sistema e é essencial para a operação. Se desejar desativar, use a opção de editar o plano e defina como inativo.',
+        type: 'error'
+      });
+      setTimeout(() => setMessage(null), 5000);
+      return;
+    }
+
     const confirmDelete = window.confirm(
       `⚠️ Tem certeza que deseja deletar o plano "${plan.display_name}"?\n\n` +
       `Isso removerá as subscriptions dos usuários.\n` +
@@ -901,9 +911,13 @@ export default function AdminPlanosManager() {
                   </button>
                   <button
                     onClick={() => handleDeletePlan(plan)}
-                    disabled={saving}
-                    className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center"
-                    title="Deletar plano"
+                    disabled={saving || plan.id === 0}
+                    className={`px-4 py-2 text-white rounded-lg transition flex items-center justify-center ${
+                      plan.id === 0
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-red-600 hover:bg-red-700 disabled:opacity-50'
+                    }`}
+                    title={plan.id === 0 ? '❌ Não é permitido deletar o plano Gratuito' : 'Deletar plano'}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
