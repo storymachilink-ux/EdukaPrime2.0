@@ -11,6 +11,7 @@ import { ConfettiAnimation } from '../components/ui/ConfettiAnimation';
 import { GamificationWidget } from '../components/gamification/GamificationWidget';
 import { ArtRevealCard } from '../components/dashboard/ArtRevealCard';
 import { BadgesModal } from '../components/ui/BadgesModal';
+import { CustomVideoPlayer } from '../components/dashboard/CustomVideoPlayer';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useBadgeListener } from '../hooks/useBadgeListener';
 
@@ -183,14 +184,9 @@ export default function Dashboard() {
           {/* Lembrança em Desenho */}
           {profile?.id && <ArtRevealCard ref={artRevealCardRef} userId={profile.id} />}
 
-          {/* Vídeo de Motivação */}
-          <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center min-h-[400px]">
-            <iframe
-              src="https://imgur.com/V9Rec3Q/embed"
-              allowFullScreen
-              className="w-full h-full min-h-[350px] rounded-lg"
-              style={{ border: 'none' }}
-            />
+          {/* Vídeo de Motivação com Player Customizado */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <CustomVideoPlayer videoUrl="https://i.imgur.com/V9Rec3Q.mp4" />
           </div>
         </div>
 
