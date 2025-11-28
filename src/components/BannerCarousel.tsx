@@ -52,14 +52,14 @@ export function BannerCarousel() {
       <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
         {/* Banner Container */}
         <div
-          className="relative aspect-[16/9] md:aspect-[20/9] w-full overflow-hidden cursor-pointer"
+          className="relative w-full overflow-hidden cursor-pointer bg-gray-50"
           onClick={handleViewContent}
         >
           {/* Banner Image */}
           <img
             src={banners[currentIndex].src}
             alt={banners[currentIndex].alt}
-            className="w-full h-full object-cover transition-opacity duration-500 hover:opacity-90"
+            className="w-full h-auto object-contain transition-opacity duration-500 hover:opacity-90"
           />
 
           {/* Left Navigation Button - Desktop Only */}
