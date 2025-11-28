@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Query com timeout de 5 segundos (força resposta)
       const queryPromise = supabase
         .from('users')
-        .select('id, email, is_admin, active_plan_id, has_lifetime_access')
+        .select('id, email, nome, is_admin, active_plan_id, has_lifetime_access, avatar_url')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -191,9 +191,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data) {
         const existingProfile = data as UserProfile;
 
-        // Garantir que avatar_url é preservado do user metadata se não tiver no banco
+        // Prioridade de avatar:
+        // 1. Avatar salvo em configurações (avatar_url no banco)
+        // 2. Foto do Google (user_metadata.avatar_url ou picture)
+        // 3. Nenhum avatar
         const profileWithAvatar: UserProfile = {
           ...existingProfile,
+          nome: existingProfile.nome || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
           avatar_url: existingProfile.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
         };
         setProfile(profileWithAvatar);
@@ -205,7 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newProfile: UserProfile = {
           id: user.id,
           email: user.email || '',
-          nome: user.email?.split('@')[0] || 'Usuário',
+          nome: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
           active_plan_id: 0,
           has_lifetime_access: false,
           is_admin: false,
