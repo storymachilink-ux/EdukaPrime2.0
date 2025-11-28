@@ -1,6 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
-import { TrendingUp, Award, Crown, Download, Eye, Target, Clock, BookOpen } from 'lucide-react';
+import { TrendingUp, Award, Crown, Download, Eye, Target } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { getUserProgressStats } from '../lib/progressTracker';
@@ -183,48 +183,14 @@ export default function Dashboard() {
           {/* Lembrança em Desenho */}
           {profile?.id && <ArtRevealCard ref={artRevealCardRef} userId={profile.id} />}
 
-          {/* Estatísticas de Tempo */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-lg font-bold text-[#0F2741] mb-4">Estatísticas Gerais</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Target className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Taxa de Conclusão</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats?.completionRate || 0}%</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <BookOpen className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Em Progresso</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats?.inProgress || 0}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <Clock className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Tempo Total Investido</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {Math.round((stats?.totalTimeSpent || 0) / 60)}h
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Vídeo de Motivação */}
+          <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center min-h-[400px]">
+            <iframe
+              src="https://imgur.com/V9Rec3Q/embed"
+              allowFullScreen
+              className="w-full h-full min-h-[350px] rounded-lg"
+              style={{ border: 'none' }}
+            />
           </div>
         </div>
 
