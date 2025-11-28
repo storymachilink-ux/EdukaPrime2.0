@@ -218,7 +218,7 @@ export function CustomVideoPlayer({ videoUrl = 'https://i.imgur.com/V9Rec3Q.mp4'
           width: '100%',
           height: '100%',
           display: 'block',
-          backgroundColor: '#000',
+          backgroundColor: '#fff',
         }}
       />
 

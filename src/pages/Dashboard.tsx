@@ -125,6 +125,11 @@ export default function Dashboard() {
           <p className="text-gray-600 mt-1">Olá, {profile?.nome || user?.email}! Acompanhe seu progresso 🚀</p>
         </div>
 
+        {/* Vídeo de Motivação */}
+        <div className="mb-8 rounded-xl shadow-lg overflow-hidden">
+          <CustomVideoPlayer videoUrl="https://i.imgur.com/V9Rec3Q.mp4" />
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
@@ -179,15 +184,9 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Lembrança em Desenho */}
+        {/* Lembrança em Desenho */}
+        <div className="mb-8">
           {profile?.id && <ArtRevealCard ref={artRevealCardRef} userId={profile.id} />}
-
-          {/* Vídeo de Motivação com Player Customizado */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <CustomVideoPlayer videoUrl="https://i.imgur.com/V9Rec3Q.mp4" />
-          </div>
         </div>
 
         {/* Badges Section */}
