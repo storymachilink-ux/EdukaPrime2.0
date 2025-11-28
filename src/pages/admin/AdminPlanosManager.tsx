@@ -326,7 +326,20 @@ export default function AdminPlanosManager() {
     try {
       setSaving(true);
 
-      // PASSO 1: Remover todas as subscriptions vinculadas a este plano
+      // PASSO 1: Resetar active_plan_id para 0 (plano gratuito) para todos os usuários com este plano
+      console.log(`🔄 Resetando active_plan_id para usuários com plano ${plan.id}...`);
+      const { error: usersError } = await supabase
+        .from('users')
+        .update({ active_plan_id: 0 })
+        .eq('active_plan_id', plan.id);
+
+      if (usersError) {
+        console.warn('⚠️ Aviso ao resetar usuários:', usersError);
+      } else {
+        console.log('✅ Usuários resetados para plano gratuito');
+      }
+
+      // PASSO 2: Remover todas as subscriptions vinculadas a este plano
       console.log(`🔄 Removendo subscriptions do plano ${plan.id}...`);
       const { error: subscriptionError } = await supabase
         .from('user_subscriptions')
@@ -340,7 +353,7 @@ export default function AdminPlanosManager() {
         console.log('✅ Subscriptions removidas');
       }
 
-      // PASSO 2: Remover items associados (plan_atividades, plan_videos, etc)
+      // PASSO 3: Remover items associados (plan_atividades, plan_videos, etc)
       const itemTypes = ['plan_atividades', 'plan_videos', 'plan_bonus', 'plan_papercrafts'];
       for (const tableName of itemTypes) {
         await supabase
@@ -350,7 +363,7 @@ export default function AdminPlanosManager() {
       }
       console.log('✅ Items removidos');
 
-      // PASSO 3: Deletar o plano
+      // PASSO 4: Deletar o plano
       console.log(`🗑️ Deletando plano ${plan.id}...`);
       const { error: planError } = await supabase
         .from('plans_v2')
