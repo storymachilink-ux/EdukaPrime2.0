@@ -1,6 +1,6 @@
 import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { useAuth } from '../contexts/AuthContext';
-import { Download, Lock, Loader2, Search, Filter, X, CheckCircle, Circle, ArrowRight, Zap, BookOpen, Sparkles } from 'lucide-react';
+import { Download, Lock, Loader2, Search, Filter, X, CheckCircle, Circle, ArrowRight, Zap, BookOpen } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { PostItTitle } from '../components/ui/PostItTitle';
@@ -383,7 +383,7 @@ export default function Atividades() {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <BookOpen className="w-5 h-5" />
+            <img src="/bncc.webp" alt="BNCC" className="w-5 h-5 object-contain" />
             <span>Atividades BNCC</span>
             <span className="ml-2 bg-white text-orange-600 rounded-full px-2 py-0.5 text-sm font-bold">
               {atividades.length}
@@ -398,7 +398,7 @@ export default function Atividades() {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <Sparkles className="w-5 h-5" />
+            <img src="/Natal/origami.png" alt="PaperCrafts" className="w-5 h-5 object-contain" />
             <span>Coleções PaperCrafts</span>
             <span className="ml-2 bg-white text-blue-600 rounded-full px-2 py-0.5 text-sm font-bold">
               {papercrafts.length}

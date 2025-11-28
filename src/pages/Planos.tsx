@@ -7,6 +7,7 @@ import { CHECKOUT_LINKS } from '../constants/checkout';
 import { AreaBanner } from '../components/AreaBanner';
 import { usePixelTracking } from '../hooks/usePixelTracking';
 import { planService } from '../lib/planService';
+import { BannerCarousel } from '../components/BannerCarousel';
 import { useEffect, useState } from 'react';
 
 interface PlanFeature {
@@ -351,6 +352,9 @@ export default function Planos() {
             );
           })}
         </div>
+
+        {/* Banner Carousel */}
+        <BannerCarousel />
 
         {/* FAQ ou Info Adicional */}
         <div className="mt-12 bg-white border-2 border-[#0F2741] rounded-xl shadow-lg p-8">
