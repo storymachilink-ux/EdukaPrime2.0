@@ -201,12 +201,19 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {badgeProgress?.badges?.slice(0, 10).map((badge: any) => (
-              <div key={badge.id} style={{
-                background: '#F5F7CD',
-                border: '1px dashed #5C5037',
-                borderRadius: '12px',
-                padding: '4px'
-              }}>
+              <div
+                key={badge.id}
+                className="aspect-square"
+                style={{
+                  background: '#F5F7CD',
+                  border: '1px dashed #5C5037',
+                  borderRadius: '12px',
+                  padding: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
                 <BadgeCard
                   badge={badge}
                   earned={badge.earned}
