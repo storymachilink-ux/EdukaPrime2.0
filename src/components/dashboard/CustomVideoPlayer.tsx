@@ -132,9 +132,10 @@ export function CustomVideoPlayer({ videoUrl = 'https://i.imgur.com/V9Rec3Q.mp4'
       setIsAudioEnabled(true);
       setShowAudioPrompt(false);
 
-      if (videoRef.current.paused) {
-        videoRef.current.play();
-      }
+      // Iniciar reprodução do vídeo
+      videoRef.current.play().catch((err) => {
+        console.error('Erro ao reproduzir vídeo:', err);
+      });
     }
   };
 
@@ -212,7 +213,6 @@ export function CustomVideoPlayer({ videoUrl = 'https://i.imgur.com/V9Rec3Q.mp4'
         ref={videoRef}
         src={videoUrl}
         muted={true}
-        autoPlay={true}
         playsInline
         style={{
           width: '100%',
