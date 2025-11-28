@@ -3,7 +3,11 @@ import { Clock, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
-export const HeaderColorir: React.FC = () => {
+interface HeaderColorirProps {
+  onLoginClick?: () => void;
+}
+
+export const HeaderColorir: React.FC<HeaderColorirProps> = ({ onLoginClick }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 minutos em segundos
