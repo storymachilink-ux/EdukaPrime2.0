@@ -62,25 +62,25 @@ export function BannerCarousel() {
             className="w-full h-full object-cover transition-opacity duration-500 hover:opacity-90"
           />
 
-          {/* Left Navigation Button */}
+          {/* Left Navigation Button - Desktop Only */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               handlePrev();
             }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-[#0F2741] rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110"
+            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-[#0F2741] rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110"
             aria-label="Voltar"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
 
-          {/* Right Navigation Button */}
+          {/* Right Navigation Button - Desktop Only */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleNext();
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-[#0F2741] rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110"
+            className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-[#0F2741] rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110"
             aria-label="Avançar"
           >
             <ChevronRight className="w-6 h-6" />
@@ -88,31 +88,31 @@ export function BannerCarousel() {
         </div>
 
         {/* Navigation Controls Below Image */}
-        <div className="flex items-center justify-between gap-6 bg-white px-4 py-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-6 bg-white px-4 py-4">
           {/* Back Button (Left) */}
           <button
             onClick={handlePrev}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-[#0F2741] font-semibold transition-all active:scale-95"
+            className="flex items-center justify-center md:justify-start gap-2 flex-1 md:flex-none px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-[#0F2741] font-semibold transition-all active:scale-95"
           >
             <ChevronLeft className="w-5 h-5" />
-            Voltar
+            <span className="hidden md:inline">Voltar</span>
           </button>
 
           {/* View Content Button (Center) - Green */}
           <button
             onClick={handleViewContent}
-            className="flex items-center gap-2 px-6 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold shadow-md hover:shadow-lg transition-all active:scale-95"
+            className="flex items-center justify-center gap-2 flex-1 md:flex-none px-6 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 whitespace-nowrap"
           >
             <Eye className="w-5 h-5" />
-            Ver conteúdo
+            <span>Ver conteúdo</span>
           </button>
 
           {/* Next Button (Right) */}
           <button
             onClick={handleNext}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-[#0F2741] font-semibold transition-all active:scale-95"
+            className="flex items-center justify-center md:justify-end gap-2 flex-1 md:flex-none px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-[#0F2741] font-semibold transition-all active:scale-95"
           >
-            Avançar
+            <span className="hidden md:inline">Avançar</span>
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
