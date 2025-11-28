@@ -51,26 +51,23 @@ export function BannerCarousel() {
     <div className="w-full mt-12">
       <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
         {/* Banner Container */}
-        <div className="relative aspect-[16/9] md:aspect-[20/9] w-full overflow-hidden">
+        <div
+          className="relative aspect-[16/9] md:aspect-[20/9] w-full overflow-hidden cursor-pointer"
+          onClick={handleViewContent}
+        >
           {/* Banner Image */}
           <img
             src={banners[currentIndex].src}
             alt={banners[currentIndex].alt}
-            className="w-full h-full object-cover transition-opacity duration-500"
+            className="w-full h-full object-cover transition-opacity duration-500 hover:opacity-90"
           />
-
-          {/* View Content Button (Center) */}
-          <button
-            onClick={handleViewContent}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex items-center gap-2 bg-white hover:bg-gray-100 text-[#0F2741] px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all active:scale-95"
-          >
-            <Eye className="w-5 h-5" />
-            Ver conteúdo
-          </button>
 
           {/* Left Navigation Button */}
           <button
-            onClick={handlePrev}
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrev();
+            }}
             className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-[#0F2741] rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110"
             aria-label="Voltar"
           >
@@ -79,7 +76,10 @@ export function BannerCarousel() {
 
           {/* Right Navigation Button */}
           <button
-            onClick={handleNext}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+            }}
             className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white text-[#0F2741] rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110"
             aria-label="Avançar"
           >
@@ -87,8 +87,8 @@ export function BannerCarousel() {
           </button>
         </div>
 
-        {/* Navigation Indicators Below Image */}
-        <div className="flex items-center justify-center gap-6 bg-white px-4 py-4">
+        {/* Navigation Controls Below Image */}
+        <div className="flex items-center justify-between gap-6 bg-white px-4 py-4">
           {/* Back Button (Left) */}
           <button
             onClick={handlePrev}
@@ -98,21 +98,14 @@ export function BannerCarousel() {
             Voltar
           </button>
 
-          {/* Indicator Dots (Center) */}
-          <div className="flex gap-2">
-            {banners.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentIndex(idx)}
-                className={`transition-all rounded-full ${
-                  idx === currentIndex
-                    ? 'w-8 h-2 bg-[#0F2741]'
-                    : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
-                }`}
-                aria-label={`Ir para banner ${idx + 1}`}
-              />
-            ))}
-          </div>
+          {/* View Content Button (Center) - Green */}
+          <button
+            onClick={handleViewContent}
+            className="flex items-center gap-2 px-6 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold shadow-md hover:shadow-lg transition-all active:scale-95"
+          >
+            <Eye className="w-5 h-5" />
+            Ver conteúdo
+          </button>
 
           {/* Next Button (Right) */}
           <button
@@ -122,6 +115,22 @@ export function BannerCarousel() {
             Avançar
             <ChevronRight className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Indicator Dots */}
+        <div className="flex justify-center gap-2 bg-white px-4 pb-4">
+          {banners.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              className={`transition-all rounded-full ${
+                idx === currentIndex
+                  ? 'w-8 h-2 bg-[#0F2741]'
+                  : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+              }`}
+              aria-label={`Ir para banner ${idx + 1}`}
+            />
+          ))}
         </div>
       </div>
     </div>
