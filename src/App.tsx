@@ -108,6 +108,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   // Hook para scroll automático ao topo ao mudar de página
   useScrollToTop();
@@ -118,6 +120,15 @@ function App() {
       trackPageView(window.location.pathname + window.location.search);
     }
   }, [location]);
+
+  // Redirecionar para /dashboard quando usuário faz login via OAuth
+  React.useEffect(() => {
+    if (!loading && user && location.pathname === '/') {
+      // Se usuário está autenticado e está na rota raiz, ir para dashboard
+      console.log('✅ Usuário autenticado detectado, redirecionando para /dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, location.pathname, navigate]);
 
   return (
     <Routes>
