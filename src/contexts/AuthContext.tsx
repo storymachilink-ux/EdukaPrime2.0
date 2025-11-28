@@ -255,6 +255,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }, 12000); // 12 segundos máximo (aumentado de 6s)
 
+    // Session recovery: verificar a cada 5 minutos se ainda está logado
+    const sessionRecoveryInterval = setInterval(async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession?.user && !lastProcessedUserId) {
+          // Sessão recuperada, atualizar estado
+          setSession(currentSession);
+          setUser(currentSession.user);
+          await createUserProfile(currentSession.user);
+        } else if (!currentSession && lastProcessedUserId) {
+          // Sessão expirou, fazer logout
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          lastProcessedUserId = '';
+        }
+      } catch (error) {
+        // Silencioso - continuar mesmo com erro
+      }
+    }, 5 * 60 * 1000); // 5 minutos
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       // ⚠️ GUARD: Ignorar eventos duplicados para evitar logout acidental
       // Se o mesmo usuário já está processando, não processar novamente
@@ -363,6 +384,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       clearTimeout(loadingTimeout);
+      clearInterval(sessionRecoveryInterval);
       subscription.unsubscribe();
     };
   }, []);

@@ -26,20 +26,28 @@ export function AreaBanner({ area }: AreaBannerProps) {
 
   const loadBanner = async () => {
     try {
+      // Tentar com select específico primeiro (melhor para RLS)
       const { data, error } = await supabase
         .from('area_banners')
-        .select('*')
+        .select('id,area,title,description,image_url,button_url,banner_url,active')
         .eq('area', area)
         .eq('active', true)
         .single();
 
-      if (!error && data && data.image_url) {
-        setBanner(data);
+      if (error && error.code === 'PGRST116') {
+        // Nenhum resultado encontrado - esperado, não é erro
+        setBanner(null);
+      } else if (error) {
+        // Outros erros - log mas não falha
+        console.warn(`[AreaBanner] Erro ao carregar banner para área "${area}":`, error.message);
+        setBanner(null);
+      } else if (data && data.image_url) {
+        setBanner(data as AreaBannerData);
       } else {
         setBanner(null);
       }
     } catch (error) {
-      console.error('Erro ao carregar banner:', error);
+      console.warn('[AreaBanner] Erro inesperado:', error instanceof Error ? error.message : String(error));
       setBanner(null);
     } finally {
       setLoading(false);
