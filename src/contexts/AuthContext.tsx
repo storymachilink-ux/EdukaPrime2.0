@@ -152,11 +152,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setProfile({
               id: simpleData.id,
               email: simpleData.email,
-              nome: simpleData.nome || 'Usuário',
+              nome: simpleData.nome || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
               active_plan_id: 0,
               has_lifetime_access: false,
               is_admin: simpleData.is_admin || false,
-              avatar_url: user.user_metadata?.avatar_url || null,
+              avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
             });
             return;
           }
@@ -172,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const basicProfile: UserProfile = {
           id: user.id,
           email: user.email || '',
-          nome: user.email?.split('@')[0] || 'Usuário',
+          nome: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
           active_plan_id: 0,
           has_lifetime_access: false,
           is_admin: adminStatus,
@@ -226,7 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const fallbackProfile: UserProfile = {
         id: user.id,
         email: user.email || '',
-        nome: user.email?.split('@')[0] || 'Usuário',
+        nome: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
         active_plan_id: 0,
         has_lifetime_access: false,
         is_admin: adminStatus,
