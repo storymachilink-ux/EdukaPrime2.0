@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Clock } from "lucide-react";
+import { Clock, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 export const HeaderColorir: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 minutos em segundos
 
   useEffect(() => {
@@ -20,6 +24,36 @@ export const HeaderColorir: React.FC = () => {
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
+  // Se usuário está logado, mostrar botão de voltar
+  if (user) {
+    return (
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 md:backdrop-blur-lg border-b border-gray-200 shadow-md">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="flex justify-between items-center h-16 gap-2">
+            {/* Logo */}
+            <div className="flex-shrink-0 min-w-0">
+              <img
+                src="/logohorizontal.webp"
+                alt="EdukaPrime"
+                className="h-6 sm:h-8 w-auto"
+              />
+            </div>
+
+            {/* Back Button */}
+            <button
+              onClick={() => navigate('/planos')}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-all active:scale-95 shadow-md hover:shadow-lg"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span className="text-sm sm:text-base">Voltar aos Planos</span>
+            </button>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // Se não está logado, mostrar timer de promoção
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 md:backdrop-blur-lg border-b border-gray-200 shadow-md">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
