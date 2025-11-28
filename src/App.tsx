@@ -49,6 +49,7 @@ import Paper from './pages/Paper';
 import Inicio from './pages/Inicio';
 import { BadgeUnlockedNotification } from './components/BadgeUnlockedNotification';
 import { useBadgeNotifications } from './hooks/useBadgeNotifications';
+import { useScrollToTop } from './hooks/useScrollToTop';
 
 // Landing Page Component
 function LandingPage() {
@@ -107,6 +108,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const location = useLocation();
+
+  // Hook para scroll automático ao topo ao mudar de página
+  useScrollToTop();
 
   // Rastrear mudanças de página no TikTok (exceto em /admin)
   React.useEffect(() => {
