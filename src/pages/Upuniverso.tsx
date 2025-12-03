@@ -151,6 +151,47 @@ export default function Upuniverso() {
 
       {/* Container principal com card */}
       <div className="w-full max-w-2xl px-4">
+        {/* Mini Etapas em Pilulas */}
+        <div className="w-full mb-8">
+          <div className="flex flex-col gap-3">
+            {/* Etapa 1 */}
+            <div className="flex items-center justify-center">
+              <div className="bg-gradient-to-r from-purple-100 to-purple-50 rounded-full px-6 py-3 shadow-md border-2 border-purple-200 hover:shadow-lg transition-shadow duration-300">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📹</span>
+                  <p className="text-sm md:text-base font-semibold text-purple-900">Assista ao vídeo para acessar a plataforma</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Etapa 2 */}
+            <div className="flex items-center justify-center">
+              <div className="bg-gradient-to-r from-blue-100 to-blue-50 rounded-full px-6 py-3 shadow-md border-2 border-blue-200 hover:shadow-lg transition-shadow duration-300">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">✉️</span>
+                  <p className="text-sm md:text-base font-semibold text-blue-900">Se atente ao e-mail cadastrado</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Etapa 3 */}
+            <div className="flex items-center justify-center">
+              <div className="bg-gradient-to-r from-pink-100 to-pink-50 rounded-full px-6 py-3 shadow-md border-2 border-pink-200 hover:shadow-lg transition-shadow duration-300">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">💬</span>
+                  <p className="text-sm md:text-base font-semibold text-pink-900">Caso tenha problemas entre em contato com o suporte ao final da página!</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Mensagem de Apoio */}
+            <div className="flex items-center justify-center mt-2">
+              <p className="text-base md:text-lg font-bold text-white text-center">
+                💛 Queremos te ajudar!
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Faixa de texto com estilo post-it */}
         <div className="relative inline-block w-full mb-8 flex justify-center">
