@@ -42,7 +42,7 @@ export default function Upuniverso() {
     if (!shouldLoadVideo) return;
 
     const playerScriptSrc = 'https://fast.wistia.com/player.js';
-    const embedScriptSrc = 'https://fast.wistia.com/embed/0cm8grrgcf.js';
+    const embedScriptSrc = 'https://fast.wistia.com/embed/lvygodnr2k.js';
 
     // Verificar se o script do player já existe
     let playerScript = document.querySelector(`script[src="${playerScriptSrc}"]`) as HTMLScriptElement;
@@ -220,8 +220,8 @@ export default function Upuniverso() {
           {/* Vídeo Wistia */}
           <div ref={videoContainerRef} className="relative w-full flex justify-center">
             <style>{`
-              wistia-player[media-id='0cm8grrgcf']:not(:defined) {
-                background: center / contain no-repeat url('https://fast.wistia.com/embed/medias/0cm8grrgcf/swatch');
+              wistia-player[media-id='lvygodnr2k']:not(:defined) {
+                background: center / contain no-repeat url('https://fast.wistia.com/embed/medias/lvygodnr2k/swatch');
                 display: block;
                 filter: blur(5px);
                 padding-top: 133.33%;
@@ -234,7 +234,7 @@ export default function Upuniverso() {
                   {shouldLoadVideo ? (
                     <div
                       dangerouslySetInnerHTML={{
-                        __html: '<wistia-player media-id="0cm8grrgcf" aspect="0.75" style="width: 100%; height: 100%;"></wistia-player>'
+                        __html: '<wistia-player media-id="lvygodnr2k" aspect="0.75" style="width: 100%; height: 100%;"></wistia-player>'
                       }}
                     />
                   ) : (
