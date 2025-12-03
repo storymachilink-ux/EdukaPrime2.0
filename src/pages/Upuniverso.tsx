@@ -151,65 +151,6 @@ export default function Upuniverso() {
 
       {/* Container principal com card */}
       <div className="w-full max-w-2xl px-4">
-        {/* BLOCO DE ORIENTAÇÃO ANTES DO UPSELL */}
-        <div className="max-w-2xl mx-auto mb-6 px-4">
-          <div className="bg-yellow-100 rounded-3xl p-5 md:p-5 shadow-lg border-2 border-yellow-300">
-            {/* Label */}
-            <span className="inline-block text-xs font-bold uppercase tracking-wider bg-white px-3 py-1 rounded-full mb-2 text-pink-500">
-              Antes de continuar…
-            </span>
-
-            {/* Título */}
-            <h2 className="text-lg md:text-xl font-bold text-blue-900 mb-2">
-              Parabéns por adquirir um produto <span className="text-yellow-600">EdukaPrime!</span>
-            </h2>
-
-            {/* Texto principal */}
-            <p className="text-sm md:text-base text-gray-700 mb-3">
-              Preparamos uma oferta exclusiva para você. Mas fique tranquilo:
-              se não tiver interesse, é só recusar e depois acessar seu produto normalmente.
-            </p>
-
-            {/* Seção de Passos */}
-            <div className="mb-3">
-              <h3 className="text-sm font-bold text-blue-900 mb-2">🔑 Como acessar seu produto</h3>
-              <ol className="text-xs md:text-sm text-gray-700 space-y-1 ml-4">
-                <li>
-                  Após <strong>aceitar ou recusar a oferta</strong>, você será direcionado para
-                  nossa <strong>área de login</strong>.
-                </li>
-                <li>
-                  <strong>Crie sua conta com o mesmo e-mail da compra.</strong><br />
-                  Se você usou um <strong>Gmail</strong>, clique em
-                  <strong> "Continuar com Google"</strong>.
-                </li>
-                <li>
-                  Pronto! Seu produto será <strong>liberado automaticamente</strong>
-                  na sua área de membros.
-                </li>
-              </ol>
-            </div>
-
-            {/* 3 Tópicos Centralizados */}
-            <div className="mt-4 pt-3 border-t border-yellow-300 space-y-2">
-              <div className="text-center">
-                <p className="text-xs md:text-sm text-gray-700 font-semibold">
-                  📹 Assista ao vídeo para acessar a plataforma
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs md:text-sm text-gray-700 font-semibold">
-                  ✉️ Se atente ao e-mail cadastrado
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs md:text-sm text-gray-700 font-semibold">
-                  💬 Caso tenha problemas entre em contato com o suporte ao final da página! Queremos te ajudar! 💛
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Faixa de texto com estilo post-it */}
         <div className="relative inline-block w-full mb-8 flex justify-center">
