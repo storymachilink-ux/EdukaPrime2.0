@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import TimerAccessGate from '../components/ui/timer-access';
 
 /**
  * Landing Page Upuniverso - Página de upsell
@@ -43,7 +42,7 @@ export default function Upuniverso() {
     if (!shouldLoadVideo) return;
 
     const playerScriptSrc = 'https://fast.wistia.com/player.js';
-    const embedScriptSrc = 'https://fast.wistia.com/embed/c0guqarmjm.js';
+    const embedScriptSrc = 'https://fast.wistia.com/embed/0cm8grrgcf.js';
 
     // Verificar se o script do player já existe
     let playerScript = document.querySelector(`script[src="${playerScriptSrc}"]`) as HTMLScriptElement;
@@ -75,16 +74,21 @@ export default function Upuniverso() {
     }
   }, [showDownsellModal]);
 
-  // Countdown do modal
+  // Countdown do modal com inicialização a 10 minutos (600 segundos)
   useEffect(() => {
     if (!showDownsellModal) return;
+
+    // Reinicia o timer a cada vez que o modal abre
+    if (timeLeft === 900) {
+      setTimeLeft(600); // 10 minutos em segundos
+    }
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
           setShowDownsellModal(false);
-          return 900;
+          return 600;
         }
         return prev - 1;
       });
@@ -147,6 +151,53 @@ export default function Upuniverso() {
 
       {/* Container principal com card */}
       <div className="w-full max-w-2xl px-4">
+        {/* BLOCO DE ORIENTAÇÃO ANTES DO UPSELL */}
+        <div className="max-w-2xl mx-auto mb-6 px-4">
+          <div className="bg-yellow-100 rounded-3xl p-5 md:p-5 shadow-lg border-2 border-yellow-300">
+            {/* Label */}
+            <span className="inline-block text-xs font-bold uppercase tracking-wider bg-white px-3 py-1 rounded-full mb-2 text-pink-500">
+              Antes de continuar…
+            </span>
+
+            {/* Título */}
+            <h2 className="text-lg md:text-xl font-bold text-blue-900 mb-2">
+              Parabéns por adquirir um produto <span className="text-yellow-600">EdukaPrime!</span>
+            </h2>
+
+            {/* Texto principal */}
+            <p className="text-sm md:text-base text-gray-700 mb-3">
+              Preparamos uma oferta exclusiva para você. Mas fique tranquilo:
+              se não tiver interesse, é só recusar e depois acessar seu produto normalmente.
+            </p>
+
+            {/* Seção de Passos */}
+            <div className="mb-3">
+              <h3 className="text-sm font-bold text-blue-900 mb-2">🔑 Como acessar seu produto</h3>
+              <ol className="text-xs md:text-sm text-gray-700 space-y-1 ml-4">
+                <li>
+                  Após <strong>aceitar ou recusar a oferta</strong>, você será direcionado para
+                  nossa <strong>área de login</strong>.
+                </li>
+                <li>
+                  <strong>Crie sua conta com o mesmo e-mail da compra.</strong><br />
+                  Se você usou um <strong>Gmail</strong>, clique em
+                  <strong> "Continuar com Google"</strong>.
+                </li>
+                <li>
+                  Pronto! Seu produto será <strong>liberado automaticamente</strong>
+                  na sua área de membros.
+                </li>
+              </ol>
+            </div>
+
+            {/* Nota importante */}
+            <p className="text-xs md:text-sm text-gray-700">
+              💛 Importante: recusar a oferta <strong>não bloqueia</strong> seu acesso.
+              Você continua com seu produto garantido.
+            </p>
+          </div>
+        </div>
+
         {/* Faixa de texto com estilo post-it */}
         <div className="relative inline-block w-full mb-8 flex justify-center">
           <div className="relative bg-[#FFE5E5] border-2 border-[#fa3f6b] rounded-2xl px-6 py-4 shadow-lg transform rotate-[-1deg] hover:rotate-0 transition-transform duration-300">
@@ -163,36 +214,27 @@ export default function Upuniverso() {
           </div>
         </div>
 
-        {/* Texto discreto abaixo do post-it */}
-        <p className="text-center text-sm md:text-base text-[#fff89e] mb-8 px-4">
-          <strong className="text-[#fff89e]">Clique em Start</strong> e aguarde alguns segundos seu acesso personalizado está sendo ativado.
-        </p>
-
-        {/* Timer Access Gate Component */}
-        <div className="mb-8">
-          <TimerAccessGate />
-        </div>
 
         {/* Card com vídeo - cor #fff89e */}
         <div id="video-container" className="bg-[#fff89e] rounded-2xl p-6 md:p-8 shadow-2xl mb-8">
           {/* Vídeo Wistia */}
           <div ref={videoContainerRef} className="relative w-full flex justify-center">
             <style>{`
-              wistia-player[media-id='c0guqarmjm']:not(:defined) {
-                background: center / contain no-repeat url('https://fast.wistia.com/embed/medias/c0guqarmjm/swatch');
+              wistia-player[media-id='0cm8grrgcf']:not(:defined) {
+                background: center / contain no-repeat url('https://fast.wistia.com/embed/medias/0cm8grrgcf/swatch');
                 display: block;
                 filter: blur(5px);
-                padding-top: 177.78%;
+                padding-top: 133.33%;
               }
             `}</style>
             <div className="relative w-full bg-white shadow-lg rounded-xl overflow-hidden">
-              {/* Aspect ratio story 9:16 (vertical) */}
-              <div className="relative w-full" style={{ paddingTop: '177.78%' }}>
+              {/* Aspect ratio 0.75 (vertical) */}
+              <div className="relative w-full" style={{ paddingTop: '133.33%' }}>
                 <div className="absolute inset-0">
                   {shouldLoadVideo ? (
                     <div
                       dangerouslySetInnerHTML={{
-                        __html: '<wistia-player media-id="c0guqarmjm" aspect="0.5625" style="width: 100%; height: 100%;"></wistia-player>'
+                        __html: '<wistia-player media-id="0cm8grrgcf" aspect="0.75" style="width: 100%; height: 100%;"></wistia-player>'
                       }}
                     />
                   ) : (
@@ -231,6 +273,19 @@ export default function Upuniverso() {
             </button>
           </div>
         </div>
+
+        {/* Botão de Suporte WhatsApp - Rodapé */}
+        <div className="w-full mt-6 text-center">
+          <a
+            href="https://api.whatsapp.com/send/?phone=%2B556793091209&text=O%E2%81%AC%E2%81%AD%E2%81%AC%E2%81%AD%E2%81%AC%E2%81%AD%E2%81%AC%E2%81%ADiee+tenho+d%C3%BAvidas+sobre+a+plataforma+Eduka+Prime+&type=phone_number&app_absent=0"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-gradient-to-r from-[#25D366] to-[#20BA5A] hover:from-[#20BA5A] hover:to-[#1ea952] text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center gap-2"
+          >
+            <img src="/whats.webp" alt="WhatsApp" className="h-6 w-6" />
+            Suporte WhatsApp
+          </a>
+        </div>
       </div>
 
       {/* Modal de Downsell - Novo Design */}
@@ -263,35 +318,49 @@ export default function Upuniverso() {
 
             {/* Conteúdo do Modal */}
             <div className="p-6 text-center space-y-5">
-              {/* Topo - Estrela em Círculo */}
+              {/* Topo - Timer Circular de 10 Minutos */}
               <div className="flex justify-center">
-                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center text-5xl animate-shimmer">
-                  ⭐
-                </div>
-              </div>
+                <div className="relative w-32 h-32">
+                  {/* Círculo de Fundo */}
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                    {/* Círculo de Background */}
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="54"
+                      fill="none"
+                      stroke="#e5e7eb"
+                      strokeWidth="8"
+                    />
+                    {/* Círculo Animado (Progress) */}
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="54"
+                      fill="none"
+                      stroke="#f59e0b"
+                      strokeWidth="8"
+                      strokeDasharray={`${Math.PI * 2 * 54}`}
+                      strokeDashoffset={`${Math.PI * 2 * 54 * (1 - timeLeft / 600)}`}
+                      strokeLinecap="round"
+                      className="transition-all duration-1000 ease-linear"
+                    />
+                  </svg>
 
-              {/* Título Principal */}
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  🌟 Espera rapidinho…
-                </h2>
-                <p className="text-lg font-semibold text-gray-900">
-                  presente especial pra você!
-                </p>
+                  {/* Texto do Timer no Centro */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="text-2xl font-bold text-amber-600">
+                      {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">minutos</div>
+                  </div>
+                </div>
               </div>
 
               {/* Subtítulo */}
               <p className="text-sm text-gray-500">
                 Oportunidade única para adquirir o <span className="font-bold" style={{ color: '#001f3f' }}>Combo Universo Criativo</span> <span style={{ color: '#22c55e' }}>+200 atividades papercraft</span> para o ano inteiro
               </p>
-
-              {/* Box da Oferta - Amarelo Pastel */}
-              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-5 space-y-4">
-                {/* Timer */}
-                <div className="text-sm text-gray-600 font-medium">
-                  🕒 Seu desconto expira em <span className="text-lg font-bold text-red-500">{formatTime(timeLeft)}</span>
-                </div>
-              </div>
 
               {/* Box de Preço - Amarelo Ouro */}
               <div className="bg-amber-100 rounded-xl p-4 space-y-1">
@@ -314,13 +383,6 @@ export default function Upuniverso() {
               >
                 💛 Comprar Combo Universo Criativo
               </button>
-
-              {/* Subtexto de Confiança */}
-              <div className="text-xs text-gray-600 flex justify-center gap-3">
-                <span>🔒 Pagamento seguro</span>
-                <span>⚡ Acesso imediato</span>
-                <span>♾️ Sem mensalidade</span>
-              </div>
 
               {/* Aviso - Única Oportunidade */}
               <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
