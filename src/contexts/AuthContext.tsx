@@ -1,23 +1,26 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import type { Session, User } from '@supabase/supabase-js';
 
-interface UserProfile {
+type AuthStatus = 'checking' | 'authenticated' | 'anonymous';
+
+type Profile = {
   id: string;
   email: string;
-  nome?: string;
-  active_plan_id: number;
-  has_lifetime_access: boolean;
-  is_admin: boolean;
-  avatar_url?: string | null;
-}
+  nome: string | null;
+  is_admin: boolean | null;
+  active_plan_id: number | null;
+  has_lifetime_access: boolean | null;
+  avatar_url: string | null;
+};
 
-interface AuthContextType {
-  user: User | null;
+type AuthContextValue = {
+  status: AuthStatus;
   session: Session | null;
-  profile: UserProfile | null;
-  loading: boolean;
+  user: User | null;
+  profile: Profile | null;
   isAdmin: boolean;
+  isAuthenticated: boolean;
   currentPlan: number;
   hasLifetimeAccess: boolean;
   signInWithGoogle: () => Promise<void>;
@@ -26,393 +29,126 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   hasAccessToFeature: (feature: 'atividades' | 'videos' | 'bonus' | 'papercrafts' | 'comunidade' | 'suporte_vip') => Promise<boolean>;
   refreshProfile: () => Promise<void>;
-}
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [status, setStatus] = useState<AuthStatus>('checking');
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [fetchingProfile, setFetchingProfile] = useState(false);
-  const [lastKnownAdminStatus, setLastKnownAdminStatus] = useState<Map<string, boolean>>(new Map());
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
-  // Determinar se usuário deve ser admin (múltiplas estratégias com localStorage cache)
-  const isUserAdmin = (user: User, lastKnownStatus?: boolean): boolean => {
-    // 1. Verificar JWT claims / user_metadata
-    if (user.user_metadata?.is_admin === true) return true;
-    if (user.app_metadata?.roles?.includes('admin')) return true;
-
-    // 2. Verificar custom claims em JWT
-    const jwtPayload = user.user_metadata as any;
-    if (jwtPayload?.admin === true || jwtPayload?.role === 'admin') return true;
-
-    // 3. Verificar localStorage cache (persiste entre page reloads)
+  // 🆕 Ativar planos pendentes após login/signup
+  async function activatePendingPlans(userId: string, userEmail: string) {
     try {
-      const cachedAdminStatus = localStorage.getItem(`admin_status_${user.id}`);
-      if (cachedAdminStatus === 'true') {
-        return true;
-      }
-    } catch (e) {
-      // localStorage pode não estar disponível em alguns contextos
-    }
-
-    // 4. Se já foi admin antes (in-memory cache), manter status
-    if (lastKnownStatus === true) {
-      return true;
-    }
-
-    // 5. Email admin (fallback final para email específico)
-    const adminEmails = ['admin@edukaprime.com', 'miguel@edukaprime.com', 'joia@hotmail.com'];
-    if (user.email && adminEmails.includes(user.email.toLowerCase())) {
-      return true;
-    }
-
-    return false;
-  };
-
-  // Helper para guardar admin status em localStorage
-  const cacheAdminStatus = (userId: string, isAdmin: boolean) => {
-    try {
-      if (isAdmin) {
-        localStorage.setItem(`admin_status_${userId}`, 'true');
-      } else {
-        localStorage.removeItem(`admin_status_${userId}`);
-      }
-    } catch (e) {
-      // localStorage pode não estar disponível
-    }
-  };
-
-  // Buscar active_plan_id dinamicamente (prefere subscriptions pagas, fallback para active_plan_id do users)
-  const fetchActivePlanFromSubscriptions = async (userId: string, fallbackPlanId: number = 0): Promise<number> => {
-    try {
-      const { data, error } = await supabase.rpc('get_user_subscriptions', { p_user_id: userId });
+      const { data, error } = await supabase.rpc('activate_pending_plans', {
+        p_user_id: userId,
+        p_user_email: userEmail,
+      });
 
       if (error) {
-        return fallbackPlanId;
+        console.warn('[AuthContext] Erro ao ativar pending_plans:', error);
+        return;
       }
 
-      if (data && data.length > 0) {
-        return data[0].plan_id;
+      const result = data?.[0] || { total_activated: 0, last_plan_id: 0 };
+      const { total_activated } = result;
+
+      if (total_activated > 0) {
+        console.log(`[AuthContext] ✅ ${total_activated} plano(s) ativado(s) com sucesso.`);
       }
-
-      return fallbackPlanId;
-    } catch (error) {
-      return fallbackPlanId;
+    } catch (err) {
+      console.error('[AuthContext] Exceção ao ativar pending_plans:', err);
     }
-  };
+  }
 
-  const createUserProfile = async (user: User, forceRefresh: boolean = false) => {
-    // Se já está buscando perfil e não é refresh forçado, pular
-    if (fetchingProfile && !forceRefresh) {
-      return;
-    }
-
+  async function loadProfile(currentUser: User) {
     try {
-      setFetchingProfile(true);
-
-      // Query com timeout de 5 segundos (força resposta)
-      const queryPromise = supabase
+      const { data, error } = await supabase
         .from('users')
         .select('id, email, nome, is_admin, active_plan_id, has_lifetime_access, avatar_url')
-        .eq('id', user.id)
+        .eq('id', currentUser.id)
         .maybeSingle();
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Query timeout (Supabase não respondeu em 5s)')), 5000)
-      );
-
-      let data, error;
-      try {
-        const result = await Promise.race([queryPromise, timeoutPromise]);
-        data = result?.data;
-        error = result?.error;
-      } catch (timeoutError) {
-        error = timeoutError;
-        data = null;
-      }
-
       if (error) {
-        // Tentar query ainda mais simples (só ID e email)
-        try {
-          const { data: simpleData, error: simpleError } = await Promise.race([
-            supabase
-              .from('users')
-              .select('id, email, nome, is_admin')
-              .eq('id', user.id)
-              .maybeSingle(),
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('Query timeout')), 2000)
-            )
-          ]) as any;
-
-          if (simpleData) {
-            setProfile({
-              id: simpleData.id,
-              email: simpleData.email,
-              nome: simpleData.nome || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
-              active_plan_id: 0,
-              has_lifetime_access: false,
-              is_admin: simpleData.is_admin || false,
-              avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-            });
-            return;
-          }
-        } catch (fallbackError) {
-          // Fallback silencioso
-        }
-
-        // Criar perfil básico mesmo se falhar
-        // Usar múltiplas estratégias para determinar admin (localStorage, in-memory cache, JWT, email)
-        const lastKnownAdmin = lastKnownAdminStatus.get(user.id);
-        const adminStatus = isUserAdmin(user, lastKnownAdmin);
-
-        const basicProfile: UserProfile = {
-          id: user.id,
-          email: user.email || '',
-          nome: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
-          active_plan_id: 0,
-          has_lifetime_access: false,
-          is_admin: adminStatus,
-          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-        };
-        setProfile(basicProfile);
-
-        // Cachear o status determinado
-        if (adminStatus) {
-          cacheAdminStatus(user.id, true);
-          setLastKnownAdminStatus(prev => new Map(prev).set(user.id, true));
-        }
+        console.error('[AuthContext] Erro ao carregar profile:', error);
         return;
       }
 
-      if (data) {
-        const existingProfile = data as UserProfile;
+      setProfile(data as Profile);
 
-        // Prioridade de avatar:
-        // 1. Avatar salvo em configurações (avatar_url no banco)
-        // 2. Foto do Google (user_metadata.avatar_url ou picture)
-        // 3. Nenhum avatar
-        const profileWithAvatar: UserProfile = {
-          ...existingProfile,
-          nome: existingProfile.nome || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
-          avatar_url: existingProfile.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-        };
-        setProfile(profileWithAvatar);
-
-        // Cachear admin status bem-sucedido (localStorage + in-memory)
-        cacheAdminStatus(user.id, existingProfile.is_admin);
-        setLastKnownAdminStatus(prev => new Map(prev).set(user.id, existingProfile.is_admin));
-      } else {
-        const newProfile: UserProfile = {
-          id: user.id,
-          email: user.email || '',
-          nome: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
-          active_plan_id: 0,
-          has_lifetime_access: false,
-          is_admin: false,
-          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-        };
-        setProfile(newProfile);
-        cacheAdminStatus(user.id, false);
+      // 🆕 Ativar planos pendentes após carregar profile
+      if (data?.email) {
+        await activatePendingPlans(currentUser.id, data.email);
       }
-    } catch (error) {
-      // Criar perfil mínimo para não travar
-      const lastKnownAdmin = lastKnownAdminStatus.get(user.id);
-      const adminStatus = isUserAdmin(user, lastKnownAdmin);
-
-      const fallbackProfile: UserProfile = {
-        id: user.id,
-        email: user.email || '',
-        nome: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
-        active_plan_id: 0,
-        has_lifetime_access: false,
-        is_admin: adminStatus,
-        avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-      };
-      setProfile(fallbackProfile);
-
-      // Cachear se conseguimos determinar admin
-      if (adminStatus) {
-        cacheAdminStatus(user.id, true);
-        setLastKnownAdminStatus(prev => new Map(prev).set(user.id, true));
-      }
-    } finally {
-      setFetchingProfile(false);
+    } catch (err) {
+      console.error('[AuthContext] Exceção ao carregar profile:', err);
     }
-  };
+  }
 
   useEffect(() => {
-    // Flag para saber se é a primeira vez
-    let isFirstLoad = true;
-    let lastProcessedUserId = '';
-    let isProcessing = false;
+    let isMounted = true;
 
-    // Timeout obrigatório para nunca ficar em loading infinito
-    const loadingTimeout = setTimeout(() => {
-      setLoading(false);
-    }, 12000); // 12 segundos máximo (aumentado de 6s)
+    const init = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (!isMounted) return;
 
-    // Session recovery: verificar a cada 5 minutos se ainda está logado
-    const sessionRecoveryInterval = setInterval(async () => {
-      try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        if (currentSession?.user && !lastProcessedUserId) {
-          // Sessão recuperada, atualizar estado
-          setSession(currentSession);
-          setUser(currentSession.user);
-          await createUserProfile(currentSession.user);
-        } else if (!currentSession && lastProcessedUserId) {
-          // Sessão expirou, fazer logout
-          setSession(null);
-          setUser(null);
-          setProfile(null);
-          lastProcessedUserId = '';
-        }
-      } catch (error) {
-        // Silencioso - continuar mesmo com erro
-      }
-    }, 5 * 60 * 1000); // 5 minutos
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // ⚠️ GUARD: Ignorar eventos duplicados para evitar logout acidental
-      // Se o mesmo usuário já está processando, não processar novamente
-      if (isProcessing && lastProcessedUserId === session?.user?.id) {
-        return;
+      if (error) {
+        console.error('[AuthContext] getSession error:', error);
       }
 
-      // Se não há sessão e já processamos logout, não processar novamente
-      if (!session?.user && !lastProcessedUserId) {
-        return;
+      const currentSession = data.session;
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+
+      if (currentSession?.user) {
+        setStatus('authenticated');
+        await loadProfile(currentSession.user);
+      } else {
+        setStatus('anonymous');
       }
+    };
 
-      isProcessing = true;
-      try {
-        // Sempre atualizar session e user
-        setSession(session);
-        setUser(session?.user ?? null);
+    init();
 
-        if (session?.user) {
-          lastProcessedUserId = session.user.id;
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      if (!isMounted) return;
 
-          // Carregar profile do usuário
-          await createUserProfile(session.user);
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
 
-          // ═══════════════════════════════════════════════════════════════════════════
-          // Ativar pending_plans se houver (com timeout)
-          // ═══════════════════════════════════════════════════════════════════════════
-          if (session.user.email) {
-            // ⚠️ DESABILITAR: Essas RPCs não existem no banco de dados (retornam 404/400)
-            // Causam loop infinito ao tentar entrar no admin
-            // Será reativado quando as migrations forem criadas
-
-            /*
-            try {
-              console.log('⏳ Verificando planos pendentes...');
-
-              // Usar Promise.race com timeout para não travar
-              const pendingResult = await Promise.race([
-                supabase.rpc('activate_pending_plans', {
-                  user_id: session.user.id,
-                  user_email: session.user.email.toLowerCase()
-                }).then(result => result.data),
-                new Promise((_, reject) =>
-                  setTimeout(() => reject(new Error('RPC timeout')), 2000)
-                ) as Promise<any>
-              ]);
-
-              if (pendingResult && pendingResult.length > 0) {
-                const { activated_count } = pendingResult[0];
-                if (activated_count > 0) {
-                  console.log(`✅ ${activated_count} plano(s) ativado(s)!`);
-                  await createUserProfile(session.user, true);
-                }
-              }
-            } catch (error) {
-              console.warn('⚠️ Erro ao ativar pending_plans (continuar mesmo assim):', error);
-              // Não falhar o login
-            }
-
-            // ═══════════════════════════════════════════════════════════════════════════
-            // NOVO: Verificar planos expirados (lazy expiration)
-            // ═══════════════════════════════════════════════════════════════════════════
-            try {
-              console.log('⏳ Verificando planos expirados...');
-
-              // Usar Promise.race com timeout para não travar
-              const expireResult = await Promise.race([
-                supabase.rpc('expire_plans_if_needed', {
-                  p_user_id: session.user.id
-                }).then(result => result.data),
-                new Promise((_, reject) =>
-                  setTimeout(() => reject(new Error('RPC timeout')), 2000)
-                ) as Promise<any>
-              ]);
-
-              if (expireResult && expireResult.length > 0) {
-                const { expired_count, new_plan_id } = expireResult[0];
-                if (expired_count > 0) {
-                  console.log(`✅ ${expired_count} plano(s) expirado(s)! Novo plano: ${new_plan_id}`);
-                  // Recarregar perfil para refletir mudança de plano
-                  await createUserProfile(session.user, true);
-                }
-              }
-            } catch (error) {
-              console.warn('⚠️ Erro ao verificar expiração (continuar mesmo assim):', error);
-              // Não falhar o login
-            }
-            */
-          }
-        } else {
-          lastProcessedUserId = '';
-          setProfile(null);
-        }
-      } catch (error) {
-        // Silent fail - perfil fallback já criado em createUserProfile
-      } finally {
-        isProcessing = false;
-        // Sempre sair do loading na primeira vez
-        if (isFirstLoad) {
-          clearTimeout(loadingTimeout);
-          setLoading(false);
-          isFirstLoad = false;
-        }
+      if (currentSession?.user) {
+        setStatus('authenticated');
+        loadProfile(currentSession.user);
+      } else {
+        setStatus('anonymous');
+        setProfile(null);
       }
     });
 
     return () => {
-      clearTimeout(loadingTimeout);
-      clearInterval(sessionRecoveryInterval);
-      subscription.unsubscribe();
+      isMounted = false;
+      subscription?.subscription.unsubscribe();
     };
   }, []);
 
   const signInWithGoogle = async () => {
-    // Redirecionar para /dashboard após login bem-sucedido (Supabase manage this)
-    const redirectUrl = `${window.location.origin}/`;
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: redirectUrl,
+        redirectTo: `${window.location.origin}/`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
         }
       }
     });
-
     if (error) throw error;
   };
 
   const signInWithEmail = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
   };
 
@@ -420,73 +156,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          full_name: nome
-        }
-      }
+      options: { data: { full_name: nome } }
     });
-
     if (error) throw error;
-
     if (data.user) {
-      await createUserProfile(data.user);
-
-      try {
-        const { data: pendingResult, error: pendingError } = await supabase.rpc(
-          'activate_pending_plans',
-          {
-            user_id: data.user.id,
-            user_email: email.toLowerCase()
-          }
-        );
-
-        if (!pendingError && pendingResult && pendingResult.length > 0) {
-          const { activated_count } = pendingResult[0];
-          if (activated_count > 0) {
-            await createUserProfile(data.user, true);
-          }
-        }
-      } catch (error) {
-        // Silent fail
-      }
-
-      try {
-        const { data: expireResult, error: expireError } = await supabase.rpc(
-          'expire_plans_if_needed',
-          {
-            p_user_id: data.user.id
-          }
-        );
-
-        if (!expireError && expireResult && expireResult.length > 0) {
-          const { expired_count } = expireResult[0];
-          if (expired_count > 0) {
-            await createUserProfile(data.user, true);
-          }
-        }
-      } catch (error) {
-        // Silent fail
-      }
+      await loadProfile(data.user);
+      // 🆕 loadProfile já ativa pending_plans, mas podemos ser explícito para garantir
+      await activatePendingPlans(data.user.id, email);
     }
   };
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+    setProfile(null);
+    setStatus('anonymous');
   };
 
-  // Verificar acesso a um feature (async - consulta o banco)
   const hasAccessToFeature = async (
     feature: 'atividades' | 'videos' | 'bonus' | 'papercrafts' | 'comunidade' | 'suporte_vip'
   ): Promise<boolean> => {
-    // 1. Admin tem acesso total
     if (profile?.is_admin) return true;
-
-    // 2. Se tem acesso vitalício, libera tudo
     if (profile?.has_lifetime_access) return true;
-
-    // 3. Consultar banco se usuário tem acesso a este feature
     if (!user?.id) return false;
 
     try {
@@ -494,45 +186,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         p_user_id: user.id,
         p_feature_name: feature,
       });
-
       if (error) throw error;
       return data || false;
-    } catch (error) {
+    } catch {
       return false;
     }
   };
 
   const refreshProfile = async () => {
-    if (user) {
-      await createUserProfile(user, true); // forceRefresh = true
-    }
+    if (!user) return;
+    await loadProfile(user);
   };
 
-  return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      profile,
-      loading,
-      isAdmin: profile?.is_admin || false,
-      currentPlan: profile?.active_plan_id || 0,
-      hasLifetimeAccess: profile?.has_lifetime_access || false,
-      signInWithGoogle,
-      signInWithEmail,
-      signUp,
-      signOut,
-      hasAccessToFeature,
-      refreshProfile
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+  const value: AuthContextValue = {
+    status,
+    session,
+    user,
+    profile,
+    isAdmin: !!profile?.is_admin,
+    isAuthenticated: status === 'authenticated',
+    currentPlan: profile?.active_plan_id || 0,
+    hasLifetimeAccess: profile?.has_lifetime_access || false,
+    signInWithGoogle,
+    signInWithEmail,
+    signUp,
+    signOut: handleSignOut,
+    hasAccessToFeature,
+    refreshProfile,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context;
+  return ctx;
 };
