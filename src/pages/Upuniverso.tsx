@@ -190,11 +190,24 @@ export default function Upuniverso() {
               </ol>
             </div>
 
-            {/* Nota importante */}
-            <p className="text-xs md:text-sm text-gray-700">
-              💛 Importante: recusar a oferta <strong>não bloqueia</strong> seu acesso.
-              Você continua com seu produto garantido.
-            </p>
+            {/* 3 Tópicos Centralizados */}
+            <div className="mt-4 pt-3 border-t border-yellow-300 space-y-2">
+              <div className="text-center">
+                <p className="text-xs md:text-sm text-gray-700 font-semibold">
+                  📹 Assista ao vídeo para acessar a plataforma
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs md:text-sm text-gray-700 font-semibold">
+                  ✉️ Se atente ao e-mail cadastrado
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs md:text-sm text-gray-700 font-semibold">
+                  💬 Caso tenha problemas entre em contato com o suporte ao final da página! Queremos te ajudar! 💛
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
