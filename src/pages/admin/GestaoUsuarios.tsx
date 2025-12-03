@@ -55,9 +55,15 @@ export default function GestaoUsuarios() {
   const [modalAddPlan, setModalAddPlan] = useState(false);
   const [selectedPlanToAdd, setSelectedPlanToAdd] = useState<number | null>(null);
 
+  // Estados para planos pendentes
+  const [pendingCountsByEmail, setPendingCountsByEmail] = useState<Record<string, number>>({});
+  const [totalPendingPlans, setTotalPendingPlans] = useState(0);
+  const [activatingAll, setActivatingAll] = useState(false);
+
   useEffect(() => {
     fetchUsuarios();
     fetchAllPlans();
+    loadPendingCounts();
   }, []);
 
   const fetchUsuarios = async () => {
@@ -89,6 +95,102 @@ export default function GestaoUsuarios() {
       setAllPlans(plans);
     } catch (error) {
       console.error('Erro ao carregar planos:', error);
+    }
+  };
+
+  // 🆕 Carregar contagem de planos pendentes por email
+  const loadPendingCounts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pending_plans')
+        .select('email')
+        .eq('status', 'pending');
+
+      if (error) {
+        console.error('Erro ao carregar planos pendentes:', error);
+        return;
+      }
+
+      const counts: Record<string, number> = {};
+      let total = 0;
+      data.forEach((row) => {
+        const email = row.email?.toLowerCase();
+        if (!email) return;
+        counts[email] = (counts[email] || 0) + 1;
+        total++;
+      });
+
+      setPendingCountsByEmail(counts);
+      setTotalPendingPlans(total);
+    } catch (error) {
+      console.error('Erro ao carregar counts de pendentes:', error);
+    }
+  };
+
+  // 🆕 Ativar TODOS os planos pendentes
+  const handleActivateAllPending = async () => {
+    if (totalPendingPlans === 0) {
+      alert('Nenhum plano pendente para ativar!');
+      return;
+    }
+
+    if (!confirm(`Ativar ${totalPendingPlans} plano(s) pendente(s)? Esta ação é irreversível!`)) {
+      return;
+    }
+
+    setActivatingAll(true);
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      // Para cada email com pendentes
+      for (const [email] of Object.entries(pendingCountsByEmail)) {
+        try {
+          // Buscar user_id do email
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+          if (userError || !userData) {
+            errorCount++;
+            continue;
+          }
+
+          // Ativar planos deste email
+          const { data: activateData, error: activateError } = await supabase.rpc('activate_pending_plans', {
+            p_user_id: userData.id,
+            p_user_email: email
+          });
+
+          if (activateError) {
+            errorCount++;
+            continue;
+          }
+
+          const result = activateData?.[0] || { total_activated: 0 };
+          successCount += result.total_activated || 0;
+        } catch (err) {
+          errorCount++;
+        }
+      }
+
+      // Recarregar dados
+      await loadPendingCounts();
+      await fetchUsuarios();
+
+      // Mostrar resultado
+      let message = `✅ ${successCount} plano(s) ativado(s)`;
+      if (errorCount > 0) {
+        message += ` | ❌ ${errorCount} erro(s)`;
+      }
+      alert(message);
+    } catch (error: any) {
+      console.error('Erro ao ativar pendentes:', error);
+      alert('Erro ao ativar planos pendentes');
+    } finally {
+      setActivatingAll(false);
     }
   };
 
@@ -374,9 +476,35 @@ export default function GestaoUsuarios() {
   return (
     <AdminLayout>
       <div className="p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Gestão de Usuários</h1>
-          <p className="text-gray-600 mt-1">Gerenciar usuários e permissões</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Gestão de Usuários</h1>
+            <p className="text-gray-600 mt-1">Gerenciar usuários e permissões</p>
+          </div>
+
+          {/* 🆕 Botão ATIVAR TODOS PENDENTES */}
+          {totalPendingPlans > 0 && (
+            <button
+              onClick={handleActivateAllPending}
+              disabled={activatingAll}
+              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                activatingAll
+                  ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                  : 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg hover:shadow-xl'
+              }`}
+            >
+              {activatingAll ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Ativando...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  ⏳ ATIVAR {totalPendingPlans} PENDENTE{totalPendingPlans > 1 ? 'S' : ''}
+                </span>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Cards de Estatísticas */}
@@ -512,7 +640,13 @@ export default function GestaoUsuarios() {
                         {new Date(user.created_at).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
+                          {/* 🆕 Badge de planos pendentes */}
+                          {pendingCountsByEmail[user.email.toLowerCase()] && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800 border border-amber-200 font-semibold whitespace-nowrap">
+                              ⏳ {pendingCountsByEmail[user.email.toLowerCase()]}
+                            </span>
+                          )}
                           <button
                             onClick={() => setModalEdit(user)}
                             className="text-blue-600 hover:text-blue-800"
